@@ -32,7 +32,7 @@
 
   var DEPARTMENTS = [
     'Sales', 'Engineering', 'Marketing', 'Customer Success',
-    'Operations', 'People & Culture', 'Design', 'Finance'
+    'Operations', 'People & Culture', 'Design', 'Finance', 'Developers'
   ];
 
   var EMPLOYEES = [
@@ -50,12 +50,29 @@
     { name: 'Tanvi Rao',      employeeId: 'EVA-012', role: 'Content Strategist',    department: 'Marketing',        birthday: birthdayIn(-26, 1998), joiningDate: '2024-06-03', status: 'inactive' }
   ];
 
+  function demoAvatar(initials, bg, fg) {
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">' +
+      '<defs>' +
+        '<linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">' +
+          '<stop offset="0%" stop-color="' + (bg || '#0d281a') + '"/>' +
+          '<stop offset="100%" stop-color="#05100a"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      '<rect width="200" height="200" rx="100" fill="url(#g)"/>' +
+      '<circle cx="100" cy="78" r="40" fill="' + (fg || '#C7F53F') + '" opacity="0.9"/>' +
+      '<path d="M35 178 C45 132 70 120 100 120 C130 120 155 132 165 178 Z" fill="' + (fg || '#C7F53F') + '" opacity="0.85"/>' +
+      '<text x="100" y="88" font-family="Arial,sans-serif" font-size="28" font-weight="bold" fill="#08150E" text-anchor="middle">' + initials + '</text>' +
+      '</svg>';
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+  }
+
   function buildEmployees() {
     var now = new Date().toISOString();
     return EMPLOYEES.map(function (e, i) {
+      var inits = U.initials(e.name);
       return Object.assign({
         id: 'emp_' + U.pad2(i + 1),
-        photo: '',
+        photo: demoAvatar(inits, '#113322', '#C7F53F'),
         email: e.name.toLowerCase().split(' ')[0] + '@askeva.io',
         createdAt: now,
         updatedAt: now

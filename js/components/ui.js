@@ -144,7 +144,7 @@
     return '<label class="field" for="' + U.attr(id) + '_file">' +
       '<span class="field__label">' + U.esc(o.label || 'Image') + '</span>' +
       '<div style="display: flex; gap: 10px; align-items: flex-start; flex-direction: column;">' +
-        '<input type="file" id="' + U.attr(id) + '_file" accept="image/*" class="input image-upload-file" data-target="' + U.attr(id) + '" data-preview="' + U.attr(id) + '_preview">' +
+        '<input type="file" id="' + U.attr(id) + '_file" accept="image/*" class="input image-upload-file" data-target="' + U.attr(id) + '" data-preview-target="' + U.attr(id) + '_preview" data-upload-state="idle">' +
         '<input type="hidden" id="' + U.attr(id) + '" name="' + U.attr(o.name) + '" value="' + U.attr(o.value || '') + '">' +
         '<div id="' + U.attr(id) + '_preview">' + preview + '</div>' +
       '</div>' +
@@ -395,20 +395,33 @@
     if (e.target && e.target.classList.contains('image-upload-file')) {
       var file = e.target.files[0];
       var hiddenInput = document.getElementById(e.target.dataset.target);
-      var previewDiv = document.getElementById(e.target.dataset.preview);
+      var previewDiv = document.getElementById(e.target.dataset.previewTarget);
       if (!file) return;
+
+      var form = e.target.form;
+      var actionButtons = form ? form.querySelectorAll('[data-preview], [data-save], [data-publish]') : [];
+      Array.prototype.forEach.call(actionButtons, function (button) { button.disabled = true; });
+      e.target.dataset.uploadState = 'reading';
       
       // Limit file size to 2MB to prevent localStorage issues
       if (file.size > 2 * 1024 * 1024) {
         ui.toast.error('Image too large', 'Please select an image smaller than 2MB.');
         e.target.value = '';
+        e.target.dataset.uploadState = 'idle';
+        Array.prototype.forEach.call(actionButtons, function (button) { button.disabled = false; });
         return;
       }
       
       var reader = new FileReader();
       reader.onload = function(e2) {
-        if (hiddenInput) hiddenInput.value = e2.target.result;
+        if (hiddenInput) {
+          hiddenInput.value = e2.target.result;
+          hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+          hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
         if (previewDiv) previewDiv.innerHTML = '<img src="' + e2.target.result + '" style="max-height: 120px; border-radius: 6px; margin-top: 8px; display: block; border: 1px solid rgba(8,21,14,0.1);">';
+        e.target.dataset.uploadState = 'ready';
+        Array.prototype.forEach.call(actionButtons, function (button) { button.disabled = false; });
       };
       reader.readAsDataURL(file);
     }

@@ -178,22 +178,96 @@
 .slide__avatar--round { border-radius: 50%; }
 
 /* ---------- BIRTHDAY ---------- */
+.slide--birthday {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  padding: 3cqi 4cqi;
+  border: .35cqi solid rgba(255,255,255,.16);
+  box-shadow: inset 0 0 0 .8cqi rgba(0,0,0,.18), inset 0 0 8cqi rgba(199,245,63,.04);
+}
 .slide--birthday::before {
   background:
-    radial-gradient(66cqi 44cqi at 50% -10%, rgba(199,245,63,.3), transparent 64%),
-    radial-gradient(40cqi 40cqi at 88% 96%, rgba(199,245,63,.14), transparent 60%);
+    radial-gradient(58cqi 55cqi at 12% 50%, rgba(199,245,63,.2), transparent 64%),
+    radial-gradient(44cqi 44cqi at 96% 96%, rgba(199,245,63,.14), transparent 60%);
 }
+.birthday__topline { display: flex; align-items: center; justify-content: space-between; gap: 3cqi; min-height: 7cqi; }
+.birthday__brand, .birthday__feed, .birthday__footer { font-family: var(--font-mono, monospace); font-size: 1.25cqi; font-weight: 700; letter-spacing: .12em; color: rgba(255,255,255,.65); }
+.birthday__brand { display: flex; align-items: center; gap: 1cqi; color: #fff; }
+.birthday__brand b { display: grid; place-items: center; width: 3.4cqi; height: 3.4cqi; border-radius: .8cqi; background: #C7F53F; color: #08150E; font-size: 2.1cqi; }
+.birthday__brand em, .birthday__feed em { color: rgba(255,255,255,.4); font-style: normal; }
+.birthday__brand small { display: block; margin-top: .4cqi; color: #C7F53F; font-size: .9cqi; letter-spacing: .2em; }
+.birthday__feed { padding: 1cqi 2cqi; border-radius: 99px; background: rgba(0,0,0,.25); white-space: nowrap; }
+.birthday__feed i, .birthday__footer i, .birthday__name-strip i { display: inline-block; width: .8cqi; height: .8cqi; border-radius: 50%; background: #C7F53F; margin-right: .7cqi; }
+.birthday__body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); align-items: center; gap: 4cqi; padding: 2cqi 6cqi; }
+.birthday__photo-panel { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.5cqi; }
+.birthday__photo {
+  width: 24cqi;
+  height: 24cqi;
+  max-width: 100%;
+  border: .35cqi solid #C7F53F;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(0,0,0,.2);
+  box-shadow: 0 0 0 1cqi rgba(199,245,63,.08), 0 2cqi 5cqi rgba(0,0,0,.28);
+}
+.birthday__photo.is-empty { border-color: rgba(199,245,63,.18); box-shadow: none; }
+.birthday__photo.has-initials {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 35% 35%, rgba(199,245,63,.22), rgba(8,21,14,.92));
+}
+.birthday__photo-initials {
+  font-family: var(--font-display, sans-serif);
+  font-size: 8.5cqi;
+  font-weight: 800;
+  color: #C7F53F;
+  letter-spacing: -.03em;
+  text-shadow: 0 0 3cqi rgba(199,245,63,.35);
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+.birthday__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.birthday__photo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 1cqi;
+  padding: 1cqi 2cqi;
+  border-radius: 99px;
+  background: #C7F53F;
+  color: #08150E;
+  font-family: var(--font-mono, monospace);
+  font-size: 1.15cqi;
+  font-weight: 700;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+.birthday__content { min-width: 0; width: 100%; box-sizing: border-box; padding: 3cqi 3cqi 2.5cqi; border: .2cqi dashed rgba(199,245,63,.5); background: rgba(8,21,14,.18); }
+.birthday__kicker { display: inline-flex; align-items: center; gap: .8cqi; max-width: 100%; box-sizing: border-box; padding: 1cqi 2cqi; color: #08150E; background: #C7F53F; border-radius: .5cqi; font-family: var(--font-mono, monospace); font-size: 1.25cqi; font-weight: 800; letter-spacing: .08em; white-space: nowrap; }
 .slide--birthday .slide__title {
   font-family: var(--font-display, sans-serif);
   font-weight: 700;
-  font-size: 5.6cqi;
-  letter-spacing: .02em;
+  font-size: 5.3cqi;
+  letter-spacing: .01em;
   text-transform: uppercase;
   color: #C7F53F;
-  margin-bottom: 2.2cqi;
+  margin: 3.5cqi 0 3cqi;
   display: flex; align-items: center; gap: 2cqi;
 }
-.slide--birthday .slide__name { font-size: 8.6cqi; }
+.slide--birthday .slide__title span { line-height: .88; }
+.slide--birthday .slide__title em { font-style: normal; color: #C7F53F; }
+.birthday__employee-name { margin: -1cqi 0 2cqi; color: #C7F53F; font-family: var(--font-mono, monospace); font-size: 2.4cqi; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.slide--birthday .slide__quote { max-width: 48cqi; margin: 0; font-size: 2.2cqi; line-height: 1.42; font-style: normal; color: rgba(255,255,255,.76); }
+.slide--birthday .slide__quote::before, .slide--birthday .slide__quote::after { content: ''; }
+.birthday__name-strip { display: flex; align-items: center; justify-content: space-between; gap: 2cqi; margin-top: 3cqi; padding: 1.5cqi 2cqi; border-radius: 1cqi; background: rgba(0,0,0,.45); font-family: var(--font-mono, monospace); }
+.birthday__name-strip strong { color: #C7F53F; font-size: 2.3cqi; letter-spacing: .08em; text-transform: uppercase; }
+.birthday__name-strip span { color: rgba(255,255,255,.75); font-size: 1.4cqi; white-space: nowrap; }
+.birthday__footer { display: flex; justify-content: space-between; gap: 2cqi; padding: 2cqi 1cqi .5cqi; color: rgba(255,255,255,.45); font-size: 1cqi; }
+.birthday__footer i { margin-left: 0; }
 .confetti {
   position: absolute;
   width: 1.1cqi; height: 1.1cqi;

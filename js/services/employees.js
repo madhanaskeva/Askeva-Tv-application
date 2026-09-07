@@ -18,6 +18,7 @@
       employeeId: String(data.employeeId || '').trim().toUpperCase(),
       role: String(data.role || '').trim(),
       department: String(data.department || '').trim(),
+      branchLocation: String(data.branchLocation || '').trim(),
       email: String(data.email || '').trim(),
       birthday: data.birthday || '',
       joiningDate: data.joiningDate || '',

@@ -34,13 +34,16 @@
       var player = window.EVA.slides.player(stage, {
         settings: window.EVA.services.settings.get()
       });
+      var loadedRevision = null;
 
       function loadBroadcast() {
         var tv = window.EVA.services.tv;
         var broadcast = tv.broadcast();
+        if (broadcast.revision === loadedRevision) return;
+        loadedRevision = broadcast.revision;
         player.setSettings(broadcast.settings || window.EVA.services.settings.get());
         if (broadcast.live && broadcast.slides && broadcast.slides.length) {
-          player.load(broadcast.slides, true).start();
+          player.load(broadcast.slides, false).start();
         } else {
           player.showOff(broadcast.live ? 'Nothing published yet' : 'Display stopped');
         }
@@ -49,6 +52,7 @@
 
       window.EVA.store.subscribe(loadBroadcast);
       loadBroadcast();
+      setInterval(loadBroadcast, 1000);
       setInterval(function () {
         Array.prototype.forEach.call(document.querySelectorAll('[data-live-clock]'), function (el) {
           el.textContent = window.EVA.utils.clockTime();

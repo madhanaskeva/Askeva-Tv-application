@@ -105,14 +105,17 @@
       };
     },
 
-    saveMessage: function (id, message) {
-      return store.update(COLL, id, { message: String(message || '').trim() });
+    saveMessage: function (id, message, photo) {
+      var updateData = { message: String(message || '').trim() };
+      if (photo !== undefined) updateData.photo = photo;
+      return store.update(COLL, id, updateData);
     },
 
     create: function (data) {
       var rec = store.insert(COLL, {
         employeeId: data.employeeId,
         message: String(data.message || '').trim(),
+        photo: data.photo || '',
         status: data.status === 'published' ? 'published' : 'draft',
         publishedAt: data.status === 'published' ? new Date().toISOString() : null,
         year: currentYear()
@@ -145,11 +148,24 @@
         .forEach(function (w) { store.remove(COLL, w.id); });
     },
 
-    /** Today's birthdays that have a published message — what the TV shows. */
+    /** All birthdays that have a published message — what the TV shows. */
     forTV: function () {
-      return service.today().filter(function (t) {
-        return t.wish && t.wish.status === 'published';
-      });
+      return store.list(COLL)
+        .filter(function (w) {
+          return w.status === 'published';
+        })
+        .map(function (w) {
+          var emp = EVA.services.employees.get(w.employeeId);
+          if (!emp || emp.status === 'inactive') return null;
+          return {
+            employee: emp,
+            wish: w,
+            daysUntil: U.daysUntilBirthday(emp.birthday),
+            daysSince: U.daysSinceBirthday(emp.birthday),
+            birthday: emp.birthday
+          };
+        })
+        .filter(Boolean);
     },
 
     stats: function () {
@@ -157,8 +173,8 @@
         today: service.today().length,
         upcoming7: service.upcoming(7).length,
         upcoming30: service.upcoming(30).length,
-        readyToPublish: service.today().filter(function (t) {
-          return t.wish && t.wish.status === 'draft';
+        readyToPublish: store.list(COLL).filter(function (w) {
+          return w.status === 'draft';
         }).length,
         live: service.forTV().length
       };

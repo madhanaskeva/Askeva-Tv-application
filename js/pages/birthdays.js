@@ -44,10 +44,14 @@
               return { value: e.id, label: e.name + ' · ' + U.formatDay(e.birthday, true) };
             })
           })) +
-      (locked ? ui.field({
-        label: 'Role shown on TV', name: 'role', value: emp.role || '', required: true,
+      ui.field({
+        label: 'Role shown on TV', name: 'role', value: emp ? emp.role || '' : '', required: true,
         placeholder: 'e.g. Sales Lead', error: null
-      }) : '') +
+      }) +
+      ui.imageUpload({
+        label: 'Birthday image', name: 'photo', value: emp ? emp.photo || '' : '',
+        hint: 'Optional image shown in the birthday TV spotlight. Keep it under 2MB.'
+      }) +
       ui.field({
         type: 'textarea', label: 'Birthday message', name: 'message', required: true, rows: 4,
         maxlength: 200,
@@ -74,6 +78,17 @@
         '<button class="btn btn--primary" type="button" data-publish>' + icon('send', { size: 16 }) + 'Publish to TV</button>',
       onMount: function (c) {
         var form = c.el.querySelector('#wishForm');
+        var photoInput = form.elements.photo;
+        var photoPreview = c.el.querySelector('#photo_preview');
+
+        function setPhotoPreview(photo) {
+          if (photoInput) photoInput.value = photo || '';
+          if (photoPreview) {
+            photoPreview.innerHTML = photo
+              ? '<img src="' + U.attr(photo) + '" alt="" style="max-height:120px;border-radius:6px;margin-top:8px;display:block;border:1px solid rgba(8,21,14,0.1);">'
+              : '';
+          }
+        }
 
         c.el.querySelector('[data-template]').addEventListener('click', function () {
           var id = form.elements.employeeId.value;
@@ -81,6 +96,8 @@
           form.elements.message.value = e
             ? S.birthdays.defaultMessage(e)
             : S.settings.get().defaultBirthdayMessage;
+          if (form.elements.role) form.elements.role.value = e ? e.role || '' : '';
+          setPhotoPreview(e ? e.photo : '');
           form.elements.message.focus();
         });
 
@@ -88,6 +105,8 @@
           form.elements.employeeId.addEventListener('change', function () {
             var e = S.employees.get(this.value);
             var existing = e ? S.birthdays.wishFor(e.id) : null;
+            form.elements.role.value = e ? e.role || '' : '';
+            setPhotoPreview(e ? e.photo : '');
             form.elements.message.value = existing ? existing.message : (e ? S.birthdays.defaultMessage(e) : '');
           });
         }
@@ -97,6 +116,7 @@
           var check = S.birthdays.validate(d);
           if (!check.valid) { ui.showErrors(form, check.errors); return; }
           var e = S.employees.get(d.employeeId);
+          e = e ? Object.assign({}, e, { role: d.role, photo: d.photo }) : e;
           EVA.publish.preview({
             title: 'Slide preview', sub: 'How this birthday will look on the office TV',
             hidePublish: true, autoplay: false,
@@ -113,20 +133,21 @@
             return null;
           }
           var existing = S.birthdays.wishFor(check.data.employeeId);
-          if (locked) {
-            var employeeData = Object.assign({}, emp, { role: d.role });
-            var employeeCheck = S.employees.validate(employeeData, emp.id);
+          var selectedEmployee = S.employees.get(check.data.employeeId);
+          if (selectedEmployee) {
+            var employeeData = Object.assign({}, selectedEmployee, { role: d.role, photo: d.photo });
+            var employeeCheck = S.employees.validate(employeeData, selectedEmployee.id);
             if (!employeeCheck.valid) {
               ui.showErrors(form, employeeCheck.errors);
               return null;
             }
-            S.employees.update(emp.id, employeeCheck.data);
+            S.employees.update(selectedEmployee.id, employeeCheck.data);
           }
           var saved;
           if (existing) {
-            saved = S.birthdays.saveMessage(existing.id, check.data.message);
+            saved = S.birthdays.saveMessage(existing.id, check.data.message, d.photo);
           } else {
-            saved = S.birthdays.create({ employeeId: check.data.employeeId, message: check.data.message });
+            saved = S.birthdays.create({ employeeId: check.data.employeeId, message: check.data.message, photo: d.photo });
           }
           if (publish) S.birthdays.publish(saved.id);
           return saved;
@@ -146,6 +167,7 @@
           var check = S.birthdays.validate(d);
           if (!check.valid) { ui.showErrors(form, check.errors); return; }
           var e = S.employees.get(check.data.employeeId);
+          if (e && form.elements.role) e = Object.assign({}, e, { role: form.elements.role.value });
 
           ui.confirm({
             title: 'Publish this content to the office TV?',
@@ -154,7 +176,10 @@
           }).then(function (ok) {
             if (!ok) return;
             persist(true);
-            S.tv.publish({ reason: 'Birthday wish for <strong>' + U.esc(e.name) + '</strong> pushed to the TV' });
+            S.tv.publish({
+              birthdayEmployeeId: e.id,
+              reason: 'Birthday wish for <strong>' + U.esc(e.name) + '</strong> pushed to the TV'
+            });
             c.close();
             EVA.publish.success({ text: e.name + '’s birthday slide is now on the office TV.' });
             if (opts.onSaved) opts.onSaved();
@@ -334,7 +359,10 @@
           }).then(function (ok) {
             if (!ok) return;
             S.birthdays.publish(ensured.id);
-            S.tv.publish({ reason: 'Birthday wish for <strong>' + U.esc(emp.name) + '</strong> pushed to the TV' });
+            S.tv.publish({
+              birthdayEmployeeId: emp.id,
+              reason: 'Birthday wish for <strong>' + U.esc(emp.name) + '</strong> pushed to the TV'
+            });
             EVA.publish.success({ text: emp.name + '’s birthday slide is now on the office TV.' });
             EVA.app.refresh();
           });

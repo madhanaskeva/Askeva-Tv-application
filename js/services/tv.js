@@ -93,7 +93,8 @@
      * Build the slide deck from everything currently published.
      * Pure: does not write anything.
      */
-    buildSlides: function () {
+    buildSlides: function (opts) {
+      opts = opts || {};
       var settings = EVA.services.settings.get();
       var slides = [];
 
@@ -101,13 +102,41 @@
         var dur = slot.duration || settings.defaultDuration;
 
         if (slot.type === 'birthday') {
-          EVA.services.birthdays.forTV().forEach(function (t) {
+          var birthdays = EVA.services.birthdays.forTV().slice();
+          if (opts.birthdayEmployeeId) {
+            var found = birthdays.some(function (b) { return b.employee && b.employee.id === opts.birthdayEmployeeId; });
+            if (!found) {
+              var pushedEmp = EVA.services.employees.get(opts.birthdayEmployeeId);
+              if (pushedEmp) {
+                var pushedWish = EVA.services.birthdays.wishFor(opts.birthdayEmployeeId) || {
+                  message: EVA.services.birthdays.defaultMessage(pushedEmp)
+                };
+                birthdays.unshift({
+                  employee: pushedEmp,
+                  wish: pushedWish,
+                  daysUntil: U.daysUntilBirthday(pushedEmp.birthday),
+                  daysSince: U.daysSinceBirthday(pushedEmp.birthday),
+                  birthday: pushedEmp.birthday
+                });
+              }
+            } else {
+              birthdays.sort(function (a, b) {
+                return (a.employee.id === opts.birthdayEmployeeId ? -1 : 0) -
+                  (b.employee.id === opts.birthdayEmployeeId ? -1 : 0);
+              });
+            }
+          }
+          birthdays.forEach(function (t) {
+            var empPhoto = (t.wish && t.wish.photo) || t.employee.photo || '';
             slides.push({
               id: 'sl_bday_' + t.employee.id,
               type: 'birthday',
               duration: dur,
               label: 'Birthday — ' + t.employee.name,
-              data: Object.assign(person(t.employee), { message: t.wish.message })
+              data: Object.assign(person(t.employee), {
+                message: t.wish.message,
+                photo: empPhoto
+              })
             });
           });
         }
@@ -273,7 +302,13 @@
      */
     publish: function (opts) {
       opts = opts || {};
-      var slides = service.buildSlides();
+      if (opts.birthdayEmployeeId && opts.birthdayEmployeeId !== 'emp_01') {
+        var demoWish = store.get('wishes', 'wish_01');
+        if (demoWish && demoWish.status === 'published') {
+          store.update('wishes', 'wish_01', { status: 'draft', publishedAt: null });
+        }
+      }
+      var slides = service.buildSlides(opts);
       var prev = service.broadcast();
       var next = {
         live: true,

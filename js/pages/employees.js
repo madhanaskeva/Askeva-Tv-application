@@ -42,11 +42,14 @@
         }) +
       '</div>' +
       '<div class="field-row">' +
+        ui.field({ label: 'Branch location', name: 'branchLocation', value: e.branchLocation || '', placeholder: 'e.g. Chennai Office' }) +
         ui.field({ type: 'date', label: 'Birthday', name: 'birthday', value: e.birthday || '', required: true, error: errors.birthday }) +
-        ui.field({ type: 'date', label: 'Joining date', name: 'joiningDate', value: e.joiningDate || '', error: errors.joiningDate }) +
       '</div>' +
       '<div class="field-row">' +
+        ui.field({ type: 'date', label: 'Joining date', name: 'joiningDate', value: e.joiningDate || '', error: errors.joiningDate }) +
         ui.field({ type: 'email', label: 'Work email', name: 'email', value: e.email || '', placeholder: 'name@askeva.io', error: errors.email }) +
+      '</div>' +
+      '<div class="field-row">' +
         ui.field({
           type: 'select', label: 'Status', name: 'status', value: e.status || 'active',
           options: [
@@ -69,8 +72,10 @@
       body: formHtml(emp),
       foot:
         '<button class="btn btn--soft" type="button" data-close>Cancel</button>' +
-        '<button class="btn btn--primary" type="button" data-save>' +
-          icon(emp ? 'save' : 'plus', { size: 16 }) + (emp ? 'Save changes' : 'Add employee') + '</button>',
+        '<button class="btn btn--soft" type="button" data-save>' +
+          icon(emp ? 'save' : 'plus', { size: 16 }) + (emp ? 'Save changes' : 'Add employee') + '</button>' +
+        '<button class="btn btn--primary" type="button" data-save-and-push>' +
+          icon('send', { size: 16 }) + (emp ? 'Save & Push to TV' : 'Add & Push to TV') + '</button>',
       onMount: function (c) {
         var form = c.el.querySelector('#empForm');
         var preview = c.el.querySelector('[data-photo-preview]');
@@ -80,13 +85,14 @@
           preview.innerHTML = v ? '<img src="' + U.attr(v) + '" alt="" onerror="this.remove()">' : icon('image', { size: 22 });
         });
 
-        form.addEventListener('submit', function (ev) { ev.preventDefault(); save(); });
+        form.addEventListener('submit', function (ev) { ev.preventDefault(); save(false); });
         form.addEventListener('keydown', function (ev) {
-          if (ev.key === 'Enter' && ev.target.tagName !== 'TEXTAREA') { ev.preventDefault(); save(); }
+          if (ev.key === 'Enter' && ev.target.tagName !== 'TEXTAREA') { ev.preventDefault(); save(false); }
         });
-        c.el.querySelector('[data-save]').addEventListener('click', save);
+        c.el.querySelector('[data-save]').addEventListener('click', function () { save(false); });
+        c.el.querySelector('[data-save-and-push]').addEventListener('click', function () { save(true); });
 
-        function save() {
+        function save(andPush) {
           var data = ui.readForm(form);
           var check = S.employees.validate(data, id);
           if (!check.valid) {
@@ -94,20 +100,137 @@
             ui.toast.error('Check the highlighted fields');
             return;
           }
+          var savedEmp;
           if (emp) {
-            S.employees.update(id, check.data);
+            savedEmp = S.employees.update(id, check.data);
             ui.toast.success('Employee updated', check.data.name + ' has been saved.');
           } else {
-            S.employees.create(check.data);
+            savedEmp = S.employees.create(check.data);
             ui.toast.success('Employee added', check.data.name + ' is now in the directory.');
           }
           c.close();
           if (onSaved) onSaved();
           EVA.app.refresh();
+          if (andPush && savedEmp) {
+            setTimeout(function () { openPushToTv(savedEmp.id); }, 120);
+          }
         }
       }
     });
     return ctrl;
+  }
+
+  /* ---------------- push to tv dialog ---------------- */
+
+  function openPushToTv(id) {
+    var emp = S.employees.get(id);
+    if (!emp) return;
+    var wish = S.birthdays.wishFor(id);
+    var defaultMsg = wish ? wish.message : S.birthdays.defaultMessage(emp);
+
+    var body =
+      '<form id="pushTvForm">' +
+        '<div style="display:flex;gap:16px;align-items:center;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:18px">' +
+          '<div id="push_photo_preview" style="flex-shrink:0">' +
+            (emp.photo
+              ? '<img src="' + U.attr(emp.photo) + '" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2.5px solid #C7F53F;display:block">'
+              : '<div style="width:72px;height:72px;border-radius:50%;background:#C7F53F;color:#08150E;font-size:26px;font-weight:800;display:grid;place-items:center">' + U.esc(U.initials(emp.name)) + '</div>') +
+          '</div>' +
+          '<div style="min-width:0;flex:1">' +
+            '<div style="font-size:17px;font-weight:700;color:#fff">' + U.esc(emp.name) + '</div>' +
+            '<div style="font-size:13.5px;color:rgba(255,255,255,0.7);margin-top:2px">' + U.esc(emp.role) + ' · ' + U.esc(emp.department) + '</div>' +
+            '<div style="font-size:12px;color:#C7F53F;margin-top:5px;display:flex;align-items:center;gap:5px">' + icon('tv', { size: 14 }) + ' Will be broadcast to TV with photo</div>' +
+          '</div>' +
+        '</div>' +
+        ui.imageUpload({
+          label: 'Photo for TV spotlight', name: 'photo', value: emp.photo || '',
+          hint: 'Keep or upload a photo that will appear on the TV screen.'
+        }) +
+        ui.field({
+          type: 'textarea', label: 'Celebration Message', name: 'message', required: true, rows: 3,
+          maxlength: 200, value: defaultMsg,
+          hint: 'Appears underneath their name on the TV celebration card.'
+        }) +
+      '</form>';
+
+    ui.modal({
+      title: 'Push ' + emp.name + ' to TV',
+      sub: 'Broadcast this employee immediately to the office TV display',
+      icon: 'send',
+      size: 'md',
+      body: body,
+      foot:
+        '<button class="btn btn--soft" type="button" data-close>Cancel</button>' +
+        '<button class="btn btn--soft" type="button" data-preview>' + icon('eye', { size: 16 }) + 'Preview slide</button>' +
+        '<button class="btn btn--primary" type="button" data-push>' + icon('send', { size: 16 }) + 'Push to TV</button>',
+      onMount: function (c) {
+        var form = c.el.querySelector('#pushTvForm');
+        var photoInput = form.elements.photo;
+        var previewTarget = c.el.querySelector('#push_photo_preview');
+
+        if (photoInput) {
+          photoInput.addEventListener('input', function () {
+            var val = this.value.trim();
+            if (val && previewTarget) {
+              previewTarget.innerHTML = '<img src="' + U.attr(val) + '" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2.5px solid #C7F53F;display:block">';
+            }
+          });
+        }
+
+        c.el.querySelector('[data-preview]').addEventListener('click', function () {
+          var d = ui.readForm(form);
+          var photoVal = d.photo || emp.photo || '';
+          EVA.publish.preview({
+            title: 'Slide preview',
+            sub: 'How ' + emp.name + ' will look on the office TV',
+            hidePublish: true,
+            autoplay: false,
+            slides: [{
+              id: 'tmp_emp',
+              type: 'birthday',
+              duration: 12,
+              label: 'Spotlight — ' + emp.name,
+              data: {
+                name: emp.name,
+                role: emp.role,
+                department: emp.department,
+                photo: photoVal,
+                initials: U.initials(emp.name),
+                message: d.message || defaultMsg
+              }
+            }]
+          });
+        });
+
+        c.el.querySelector('[data-push]').addEventListener('click', function () {
+          var d = ui.readForm(form);
+          var photoVal = d.photo || emp.photo || '';
+          var msg = String(d.message || defaultMsg).trim();
+
+          if (photoVal !== emp.photo) {
+            S.employees.update(emp.id, Object.assign({}, emp, { photo: photoVal }));
+          }
+
+          var existingWish = S.birthdays.wishFor(emp.id);
+          if (existingWish) {
+            S.birthdays.saveMessage(existingWish.id, msg, photoVal);
+            S.birthdays.publish(existingWish.id);
+          } else {
+            var created = S.birthdays.create({ employeeId: emp.id, message: msg, photo: photoVal, status: 'published' });
+            S.birthdays.publish(created.id);
+          }
+
+          S.tv.publish({
+            birthdayEmployeeId: emp.id,
+            reason: '<strong>' + U.esc(emp.name) + '</strong> pushed to the TV with photo'
+          });
+
+          c.close();
+          EVA.publish.success({ text: emp.name + ' is now live on the TV display with photo.' });
+          EVA.app.refresh();
+        });
+      }
+    });
   }
 
   /* ---------------- profile drawer ---------------- */
@@ -156,6 +279,7 @@
         '<div class="kv"><span class="kv__k">Birthday</span><span class="kv__v">' + U.esc(U.formatDay(emp.birthday)) +
           ' <span class="muted">· ' + (days === 0 ? 'today' : 'in ' + days + ' days') + '</span></span></div>' +
         '<div class="kv"><span class="kv__k">Age</span><span class="kv__v">' + (U.age(emp.birthday) || '—') + '</span></div>' +
+        '<div class="kv"><span class="kv__k">Branch</span><span class="kv__v">' + U.esc(emp.branchLocation || 'Not set') + '</span></div>' +
         '<div class="kv"><span class="kv__k">Joined</span><span class="kv__v">' + U.esc(U.formatDate(emp.joiningDate)) + '</span></div>' +
         '<div class="kv"><span class="kv__k">Tenure</span><span class="kv__v">' + U.esc(U.tenure(emp.joiningDate)) + '</span></div>' +
         '<div class="kv"><span class="kv__k">Email</span><span class="kv__v">' + U.esc(emp.email || '—') + '</span></div>' +
@@ -174,8 +298,13 @@
         '<button class="btn btn--danger btn--sm" type="button" data-del>' + icon('trash', { size: 15 }) + 'Delete</button>' +
         '<div style="flex:1"></div>' +
         '<button class="btn btn--soft" type="button" data-close>Close</button>' +
-        '<button class="btn btn--primary" type="button" data-edit>' + icon('edit', { size: 16 }) + 'Edit</button>',
+        '<button class="btn btn--soft" type="button" data-edit>' + icon('edit', { size: 16 }) + 'Edit</button>' +
+        '<button class="btn btn--primary" type="button" data-push-tv>' + icon('send', { size: 16 }) + 'Push to TV</button>',
       onMount: function (c) {
+        c.el.querySelector('[data-push-tv]').addEventListener('click', function () {
+          c.close();
+          openPushToTv(id);
+        });
         c.el.querySelector('[data-edit]').addEventListener('click', function () {
           c.close();
           openForm(id);
@@ -280,6 +409,7 @@
           '<td class="muted">' + U.esc(U.formatDate(e.joiningDate, true)) + '</td>' +
           '<td>' + ui.badge(e.status) + '</td>' +
           '<td><span class="table__actions">' +
+            '<button class="btn btn--xs btn--primary tooltip-host" data-tip="Push to TV with photo" data-act="push-tv">' + icon('send', { size: 12 }) + ' Push</button>' +
             '<button class="btn btn--xs btn--soft btn--icon tooltip-host" data-tip="View" data-act="view">' + icon('eye', { size: 13 }) + '</button>' +
             '<button class="btn btn--xs btn--soft btn--icon tooltip-host" data-tip="Edit" data-act="edit">' + icon('edit', { size: 13 }) + '</button>' +
             '<button class="btn btn--xs btn--soft btn--icon tooltip-host" data-tip="Delete" data-act="delete">' + icon('trash', { size: 13 }) + '</button>' +
@@ -309,6 +439,7 @@
           '</div>' +
           '<div class="divider" style="margin:14px 0"></div>' +
           '<div class="kv" style="padding:5px 0"><span class="kv__k">Dept</span><span class="kv__v">' + U.esc(e.department) + '</span></div>' +
+          '<div class="kv" style="padding:5px 0"><span class="kv__k">Branch</span><span class="kv__v">' + U.esc(e.branchLocation || 'Not set') + '</span></div>' +
           '<div class="kv" style="padding:5px 0"><span class="kv__k">ID</span><span class="kv__v mono">' + U.esc(e.employeeId) + '</span></div>' +
           '<div class="kv" style="padding:5px 0"><span class="kv__k">Birthday</span><span class="kv__v">' +
             U.esc(U.formatDay(e.birthday, true)) + (days === 0 ? ' 🎂' : '') + '</span></div>' +
@@ -316,6 +447,7 @@
         '<div class="card__foot">' +
           '<span class="mono muted">' + U.esc(U.tenure(e.joiningDate)) + '</span>' +
           '<span class="btn-group">' +
+            '<button class="btn btn--xs btn--primary" data-act="push-tv">' + icon('send', { size: 12 }) + 'Push</button>' +
             '<button class="btn btn--xs btn--soft" data-act="view">View</button>' +
             '<button class="btn btn--xs btn--soft btn--icon" data-act="edit">' + icon('edit', { size: 13 }) + '</button>' +
             '<button class="btn btn--xs btn--soft btn--icon" data-act="delete">' + icon('trash', { size: 13 }) + '</button>' +
@@ -348,6 +480,7 @@
 
     setSearch: function (term) { state.search = term; },
     openForm: openForm,
+    openPushToTv: openPushToTv,
 
     render: function (params) {
       // deep link: #/employees/<id> opens the profile after mount
@@ -421,7 +554,8 @@
           if (!row) return;
           var empId = row.dataset.id;
           var act = t.dataset.act;
-          if (act === 'view') openProfile(empId);
+          if (act === 'push-tv') openPushToTv(empId);
+          else if (act === 'view') openProfile(empId);
           else if (act === 'edit') openForm(empId);
           else if (act === 'delete') confirmDelete(empId);
         }

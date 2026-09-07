@@ -38,6 +38,11 @@
     window.location.hash = '#/' + String(path).replace(/^#?\/?/, '');
   };
 
+  app.back = function () {
+    if (window.history.length > 1) window.history.back();
+    else app.go('content');
+  };
+
   app.refresh = function () {
     if (app._suspend) return;
     renderPage(true);
@@ -117,6 +122,10 @@
     return '<header class="header">' +
       '<div class="header__inner">' +
         '<button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">' + icon('menu') + '</button>' +
+        (CONTENT_ROUTES.indexOf(app.route.name) !== -1
+          ? '<button class="btn btn--soft btn--sm header__back" type="button" data-app-action="back" aria-label="Go back">' +
+              icon('arrow-left', { size: 15 }) + 'Back</button>'
+          : '') +
         '<div class="header__titles">' +
           '<div class="header__title">' + U.esc(pageTitle) + '</div>' +
           '<div class="header__sub">' + U.esc(U.longDate()) + '</div>' +
@@ -292,6 +301,8 @@
 
     if (action === 'push') {
       EVA.publish.push({ reason: 'TV updated from the header' }).then(function (ok) { if (ok) app.refresh(); });
+    } else if (action === 'back') {
+      app.back();
     } else if (action === 'preview') {
       EVA.publish.preview({});
     } else if (action === 'notifications') {

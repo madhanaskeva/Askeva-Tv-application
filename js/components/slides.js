@@ -38,15 +38,32 @@
 
   var RENDER = {
     birthday: function (d, settings) {
+      var company = (settings && settings.companyName) || 'AskEVA';
       return '<div class="slide slide--birthday">' +
         confetti(14) +
-        '<div class="slide__title">' + icon('gift', { size: 44 }) + 'HAPPY BIRTHDAY</div>' +
-        avatar(d, true) +
-        '<div class="slide__name">' + U.esc(d.name) + '</div>' +
-        '<div class="slide__role">' + U.esc(d.role || '') +
-          (d.department ? ' · <em>' + U.esc(d.department) + '</em>' : '') + '</div>' +
-        (d.message ? '<p class="slide__quote">' + U.esc(d.message) + '</p>' : '') +
-        brand(settings) +
+        '<div class="birthday__topline">' +
+          '<span class="birthday__brand"><b>A</b><span>' + U.esc(company.toUpperCase()) + '<em> SIGNAGE</em><small>CELEBRATION REEL</small></span></span>' +
+          '<span class="birthday__feed"><i></i> FEED: CHANNEL 01 <em>· 1080p60 · HDR10</em></span>' +
+        '</div>' +
+        '<div class="birthday__body">' +
+          '<div class="birthday__photo-panel">' +
+            '<div class="birthday__photo' + (d.photo ? '' : ' has-initials') + '">' +
+              (d.photo
+                ? '<img src="' + U.attr(d.photo) + '" alt="' + U.attr(d.name || 'Employee') + '" onerror="this.style.display=\'none\';if(this.nextElementSibling)this.nextElementSibling.style.display=\'grid\';">' +
+                  '<span class="birthday__photo-initials" style="display:none">' + U.esc(d.initials || U.initials(d.name || 'E')) + '</span>'
+                : '<span class="birthday__photo-initials">' + U.esc(d.initials || U.initials(d.name || 'E')) + '</span>') +
+            '</div>' +
+            '<div class="birthday__photo-badge">' + icon('sparkles', { size: 15 }) + ' ' + U.esc(company.toUpperCase()) + ' SPOTLIGHT HONOREE · ' + U.esc(d.name || 'Employee') + '</div>' +
+          '</div>' +
+          '<div class="birthday__content">' +
+            '<div class="birthday__kicker">' + icon('send', { size: 13 }) + ' SPECIAL MILESTONE BROADCAST</div>' +
+            '<div class="slide__title"><span>HAPPY<br><em>BIRTHDAY!</em></span></div>' +
+            '<div class="birthday__employee-name">' + U.esc(d.name || 'Employee') + '</div>' +
+            (d.message ? '<p class="slide__quote">' + U.esc(d.message) + '</p>' : '') +
+            '<div class="birthday__name-strip"><strong>' + U.esc(d.name) + '</strong><span><i></i>' + U.esc(d.role || '') + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="birthday__footer"><span><i></i>' + U.esc(company.toUpperCase()) + ' CINEMATRIX ENGINE</span><span>EDID: 3840x2160@60HZ · UHD CANVAS</span></div>' +
       '</div>';
     },
 

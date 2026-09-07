@@ -240,6 +240,7 @@
   box-shadow: var(--sh-sm);
 }
 .header__titles { min-width: 0; flex: none; padding-right: 6px; }
+.header__back { flex: none; }
 .header__title { font-size: 17px; letter-spacing: -.025em; line-height: 1.2; }
 .header__sub { font-size: 11.5px; color: var(--gray); margin-top: 2px; }
 
