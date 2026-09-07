@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08150e">
+  <title>AskEVA TV</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/slides.css">
+  <link rel="stylesheet" href="css/tv.css">
+</head>
+
+<body class="tv-page">
+  <main class="tv-stage" id="tvStage" aria-live="polite"></main>
+  <script src="js/core/utils.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/data/seed.js"></script>
+  <script src="js/core/store.js"></script>
+  <script src="js/services/activity.js"></script>
+  <script src="js/services/employees.js"></script>
+  <script src="js/services/birthdays.js"></script>
+  <script src="js/services/performers.js"></script>
+  <script src="js/services/announcements.js"></script>
+  <script src="js/services/events.js"></script>
+  <script src="js/services/achievements.js"></script>
+  <script src="js/services/settings.js"></script>
+  <script src="js/services/tv.js"></script>
+  <script src="js/components/slides.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var stage = document.getElementById('tvStage');
+      var player = window.EVA.slides.player(stage, {
+        settings: window.EVA.services.settings.get()
+      });
+
+      function loadBroadcast() {
+        var tv = window.EVA.services.tv;
+        var broadcast = tv.broadcast();
+        player.setSettings(broadcast.settings || window.EVA.services.settings.get());
+        if (broadcast.live && broadcast.slides && broadcast.slides.length) {
+          player.load(broadcast.slides, true).start();
+        } else {
+          player.showOff(broadcast.live ? 'Nothing published yet' : 'Display stopped');
+        }
+        document.title = (broadcast.settings && broadcast.settings.companyName || 'AskEVA') + ' TV';
+      }
+
+      window.EVA.store.subscribe(loadBroadcast);
+      loadBroadcast();
+      setInterval(function () {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-live-clock]'), function (el) {
+          el.textContent = window.EVA.utils.clockTime();
+        });
+      }, 1000);
+    }());
+  </script>
+</body>
+
+</html>

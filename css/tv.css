@@ -1,0 +1,190 @@
+/* ==========================================================================
+   TV Display — fullscreen office screen. No admin chrome.
+   ========================================================================== */
+
+html, body { height: 100%; overflow: hidden; background: #05100A; }
+
+.tv {
+  position: fixed;
+  inset: 0;
+  background: #05100A;
+  color: #fff;
+  cursor: none;
+}
+.tv.is-idle-cursor { cursor: none; }
+.tv:hover { cursor: default; }
+
+.tv__stage {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---------- Progress segments (top) ---------- */
+.tv__progress {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  display: flex;
+  gap: 3px;
+  padding: 0;
+  z-index: 20;
+  background: rgba(255,255,255,.06);
+}
+.tv__seg {
+  flex: 1;
+  background: rgba(255,255,255,.12);
+  position: relative;
+  overflow: hidden;
+}
+.tv__seg i {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: #C7F53F;
+}
+.tv__seg.is-done i { transform: scaleX(1); }
+.tv__seg.is-active i { animation: segFill linear forwards; }
+@keyframes segFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ---------- Corner furniture ---------- */
+.tv__corner {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-mono, monospace);
+  color: rgba(255,255,255,.55);
+}
+.tv__corner--tl { top: 30px; left: 40px; }
+.tv__corner--tr { top: 30px; right: 40px; }
+.tv__corner--bl { bottom: 30px; left: 40px; }
+.tv__corner--br { bottom: 30px; right: 40px; }
+
+.tv__logo {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--font-display, sans-serif);
+  font-weight: 700;
+  font-size: 1.5vw;
+  letter-spacing: -.02em;
+  color: #fff;
+}
+.tv__logo-mark {
+  width: 2.4vw; height: 2.4vw;
+  min-width: 30px; min-height: 30px;
+  border-radius: .7vw;
+  background: #C7F53F;
+  color: #08150E;
+  display: grid; place-items: center;
+}
+.tv__logo-mark svg { width: 60%; height: 60%; }
+.tv__logo em { font-style: normal; color: #C7F53F; }
+
+.tv__clock {
+  font-size: 1.5vw;
+  font-weight: 600;
+  letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.tv__date {
+  font-size: .85vw;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.42);
+  margin-top: .35vw;
+  text-align: right;
+}
+.tv__live {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .85vw;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: #C7F53F;
+}
+.tv__live i {
+  width: .7vw; height: .7vw;
+  min-width: 9px; min-height: 9px;
+  border-radius: 50%;
+  background: #C7F53F;
+  animation: pulseDot 2s infinite;
+}
+.tv__counter {
+  font-size: .85vw;
+  letter-spacing: .2em;
+  color: rgba(255,255,255,.4);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hide furniture on very small screens (preview / phone) */
+@media (max-width: 700px) {
+  .tv__corner { display: none; }
+}
+
+/* ---------- Standby overlay ---------- */
+.tv__standby {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  background: #05100A;
+  text-align: center;
+  padding: 5vw;
+}
+.tv__standby[hidden] { display: none; }
+.tv__standby-icon { color: rgba(199,245,63,.5); margin-bottom: 2vw; }
+.tv__standby-icon svg { width: 6vw; height: 6vw; min-width: 56px; min-height: 56px; }
+.tv__standby-title {
+  font-family: var(--font-display, sans-serif);
+  font-weight: 700;
+  font-size: 3.6vw;
+  letter-spacing: -.04em;
+}
+.tv__standby-text {
+  margin-top: 1.4vw;
+  font-size: 1.3vw;
+  color: rgba(255,255,255,.45);
+  max-width: 46ch;
+  line-height: 1.6;
+}
+.tv__standby-hint {
+  margin-top: 3vw;
+  font-family: var(--font-mono, monospace);
+  font-size: .9vw;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.28);
+}
+
+/* ---------- Sync flash ---------- */
+.tv__flash {
+  position: absolute;
+  top: 30px; left: 50%;
+  transform: translateX(-50%) translateY(-24px);
+  z-index: 40;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px;
+  border-radius: 99px;
+  background: #C7F53F;
+  color: #08150E;
+  font-family: var(--font-mono, monospace);
+  font-size: .8vw;
+  font-weight: 700;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease, transform .3s ease;
+  white-space: nowrap;
+}
+.tv__flash.is-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+.tv__flash svg { width: 1vw; height: 1vw; min-width: 13px; min-height: 13px; }
+
+@media (max-width: 900px) {
+  .tv__flash { font-size: 10px; }
+  .tv__standby-title { font-size: 26px; }
+  .tv__standby-text { font-size: 13px; }
+  .tv__standby-hint { font-size: 10px; }
+}
