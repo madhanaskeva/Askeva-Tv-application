@@ -163,7 +163,7 @@
   /* ---------------- page ---------------- */
 
   EVA.pages.achievements = {
-    title: 'Achievements',
+    title: 'Achievements & Awards',
     openForm: openForm,
 
     render: function () {
@@ -180,7 +180,7 @@
 
       return '<div class="page__head">' +
           '<div class="page__head-text">' +
-            '<h1 class="page__title">Achievements & Milestones</h1>' +
+            '<h1 class="page__title">Achievements & Awards</h1>' +
             '<p class="page__desc">Celebrate Intern to Full-Time conversions and other major milestones. ' +
               stats.published + ' of ' + stats.total + ' cards are live on the TV.</p>' +
           '</div>' +

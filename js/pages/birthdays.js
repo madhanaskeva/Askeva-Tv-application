@@ -33,7 +33,7 @@
         ? '<div class="emp-hero" style="margin-bottom:18px;padding:14px">' +
             ui.avatar(emp, { size: 'lg' }) +
             '<div><div class="person__name" style="font-size:16px">' + U.esc(emp.name) + '</div>' +
-            '<div class="person__sub">' + U.esc(emp.role) + ' · ' + U.esc(emp.department) + '</div>' +
+            '<div class="person__sub">Editing role and birthday content · ' + U.esc(emp.department) + '</div>' +
             '<div style="margin-top:8px"><span class="chip">' + icon('cake') + U.esc(U.formatDay(emp.birthday)) + '</span></div></div>' +
             '<input type="hidden" name="employeeId" value="' + U.attr(employeeId) + '">' +
           '</div>'
@@ -44,6 +44,10 @@
               return { value: e.id, label: e.name + ' · ' + U.formatDay(e.birthday, true) };
             })
           })) +
+      (locked ? ui.field({
+        label: 'Role shown on TV', name: 'role', value: emp.role || '', required: true,
+        placeholder: 'e.g. Sales Lead', error: null
+      }) : '') +
       ui.field({
         type: 'textarea', label: 'Birthday message', name: 'message', required: true, rows: 4,
         maxlength: 200,
@@ -109,6 +113,15 @@
             return null;
           }
           var existing = S.birthdays.wishFor(check.data.employeeId);
+          if (locked) {
+            var employeeData = Object.assign({}, emp, { role: d.role });
+            var employeeCheck = S.employees.validate(employeeData, emp.id);
+            if (!employeeCheck.valid) {
+              ui.showErrors(form, employeeCheck.errors);
+              return null;
+            }
+            S.employees.update(emp.id, employeeCheck.data);
+          }
           var saved;
           if (existing) {
             saved = S.birthdays.saveMessage(existing.id, check.data.message);

@@ -60,6 +60,8 @@
     return '<div class="now-playing">' +
       '<div class="now-playing__screen">' +
         '<div class="slide-stage" data-dash-stage></div>' +
+        '<button class="now-playing__edit" type="button" data-action="edit-current" title="Edit current TV content">' +
+          icon('edit', { size: 14 }) + 'Edit content</button>' +
       '</div>' +
       '<div class="now-playing__side">' +
         '<div class="now-playing__eyebrow">' +
@@ -261,6 +263,8 @@
             .then(function (ok) { if (ok) EVA.app.refresh(); });
         } else if (action === 'preview') {
           EVA.publish.preview({});
+        } else if (action === 'edit-current') {
+          openCurrentEditor();
         } else if (action === 'add-employee') {
           EVA.pages.employees.openForm(null, function () { EVA.app.go('employees'); });
         } else if (action === 'add-wish') {
@@ -273,6 +277,28 @@
       });
     }
   };
+
+  function openCurrentEditor() {
+    var player = EVA.pages.dashboard._player;
+    var slide = player && player.current;
+    if (!slide) {
+      ui.toast.info('Nothing to edit', 'Publish content to the TV first.');
+      return;
+    }
+
+    var match = String(slide.id || '').match(/^sl_(bday|perf|ann|ach)_(.+)$/);
+    if (slide.type === 'birthday' && match && EVA.pages.birthdays.openEditor) {
+      EVA.pages.birthdays.openEditor(match[2], { onSaved: function () { EVA.app.refresh(); } });
+    } else if (slide.type === 'performer' && match && EVA.pages.performers.openForm) {
+      EVA.pages.performers.openForm(match[2], null, function () { EVA.app.refresh(); });
+    } else if (slide.type === 'announcement' && match && EVA.pages.announcements.openForm) {
+      EVA.pages.announcements.openForm(match[2], function () { EVA.app.refresh(); });
+    } else if (slide.type === 'achievement' && match && EVA.pages.achievements.openForm) {
+      EVA.pages.achievements.openForm(match[2], function () { EVA.app.refresh(); });
+    } else {
+      ui.toast.info('This content is managed from its module', 'Open Content Media to edit this slide.');
+    }
+  }
 
   function greeting() {
     var h = new Date().getHours();

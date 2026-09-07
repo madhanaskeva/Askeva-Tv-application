@@ -10,18 +10,13 @@
   var ui = EVA.ui;
 
   var NAV = [
-    { group: 'Manage' },
-    { id: 'dashboard',     label: 'Dashboard',       icon: 'dashboard' },
-    { id: 'employees',     label: 'Employees',       icon: 'users' },
-    { id: 'performers',    label: 'Top Performers',  icon: 'trophy' },
-    { id: 'birthdays',     label: 'Birthday Wishes', icon: 'cake' },
-    { id: 'announcements', label: 'Announcements',   icon: 'megaphone' },
-    { id: 'events',        label: 'Events',          icon: 'calendar' },
-    { id: 'achievements',  label: 'Achievements',    icon: 'sparkles' },
-    { group: 'Broadcast' },
-    { id: 'tv',            label: 'TV Display',      icon: 'tv' },
-    { id: 'settings',      label: 'Settings',        icon: 'settings' }
+    { id: 'dashboard', label: 'Dashboard',     icon: 'dashboard' },
+    { id: 'content',  label: 'Content Media', icon: 'layers' },
+    { id: 'tv',       label: 'TV Display',    icon: 'tv' },
+    { id: 'settings', label: 'Settings',     icon: 'settings' }
   ];
+
+  var CONTENT_ROUTES = ['employees', 'performers', 'birthdays', 'announcements', 'events', 'achievements'];
 
   var app = {
     route: { name: 'dashboard', params: [] },
@@ -69,7 +64,8 @@
 
     var items = NAV.map(function (n) {
       if (n.group) return '<div class="nav__label">' + U.esc(n.group) + '</div>';
-      var active = app.route.name === n.id ? ' is-active' : '';
+      var active = (app.route.name === n.id ||
+        (n.id === 'content' && CONTENT_ROUTES.indexOf(app.route.name) !== -1)) ? ' is-active' : '';
       var badge = '';
       if (n.id === 'employees' && counts.employees) badge = '<span class="nav__count">' + counts.employees + '</span>';
       if (n.id === 'birthdays' && counts.birthdays) badge = '<span class="nav__count">' + counts.birthdays + '</span>';
@@ -116,12 +112,13 @@
 
   function renderHeader() {
     var page = EVA.pages[app.route.name];
+    var pageTitle = page.getTitle ? page.getTitle(app.route.params) : page.title;
     var pending = EVA.services.tv.pending();
     return '<header class="header">' +
       '<div class="header__inner">' +
         '<button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">' + icon('menu') + '</button>' +
         '<div class="header__titles">' +
-          '<div class="header__title">' + U.esc(page.title) + '</div>' +
+          '<div class="header__title">' + U.esc(pageTitle) + '</div>' +
           '<div class="header__sub">' + U.esc(U.longDate()) + '</div>' +
         '</div>' +
         '<div class="search">' + icon('search') +
@@ -227,7 +224,7 @@
     newHost.innerHTML = page.render(app.route.params);
     if (page.mount) page.mount(newHost, app.route.params);
 
-    document.title = page.title + ' · AskEVA Office TV';
+    document.title = (page.getTitle ? page.getTitle(app.route.params) : page.title) + ' · AskEVA Office TV';
 
     if (keepScroll) {
       window.scrollTo(0, scroll);

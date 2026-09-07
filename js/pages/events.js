@@ -189,10 +189,14 @@
 
   EVA.pages.events = {
     title: 'Events',
+    getTitle: function (params) { return params && params[0] === 'past' ? 'Past Events Highlights' : 'Events'; },
     openForm: openForm,
 
-    render: function () {
-      var rows = S.events.query(state);
+    render: function (params) {
+      var pastHighlights = params && params[0] === 'past';
+      var rows = pastHighlights
+        ? S.events.all().filter(function (event) { return event.endDate && event.endDate < U.today(); })
+        : S.events.query(state);
       var stats = S.events.stats();
       var filtering = state.search || state.status !== 'all' || state.priority !== 'all';
 
@@ -208,10 +212,11 @@
 
       return '<div class="page__head">' +
           '<div class="page__head-text">' +
-            '<h1 class="page__title">Events</h1>' +
-            '<p class="page__desc">' + stats.active + ' active on the TV · ' + stats.scheduled +
-              ' scheduled · ' + stats.drafts + ' ' + U.pluralize(stats.drafts, 'draft') +
-              '. Events only display between their start and end dates.</p>' +
+            '<h1 class="page__title">' + (pastHighlights ? 'Past Events Highlights' : 'Events') + '</h1>' +
+            '<p class="page__desc">' + (pastHighlights
+              ? 'Review completed events and keep a record of the moments worth remembering.'
+              : stats.active + ' active on the TV · ' + stats.scheduled + ' scheduled · ' + stats.drafts + ' ' + U.pluralize(stats.drafts, 'draft') +
+                '. Events only display between their start and end dates.') + '</p>' +
           '</div>' +
           '<div class="page__actions">' +
             '<button class="btn btn--soft" type="button" data-act="preview-all">' + icon('eye', { size: 16 }) + 'Preview TV</button>' +
@@ -226,7 +231,7 @@
           sel('status', state.status, S.events.STATUSES, 'Any status') +
           sel('priority', state.priority, S.events.PRIORITIES, 'Any priority') +
           (filtering ? '<button class="btn btn--ghost btn--sm" type="button" data-act="clear">' + icon('x', { size: 14 }) + 'Clear</button>' : '') +
-          '<div class="toolbar__spacer"></div>' +
+          (pastHighlights ? '' : '<div class="toolbar__spacer"></div>') +
           '<div class="segment">' +
             '<button class="segment__btn' + (state.sort === 'startDate' ? ' is-active' : '') + '" type="button" data-sort="startDate">' + icon('calendar', { size: 14 }) + 'Date</button>' +
             '<button class="segment__btn' + (state.sort === 'priority' ? ' is-active' : '') + '" type="button" data-sort="priority">' + icon('flag', { size: 14 }) + 'Priority</button>' +
@@ -237,9 +242,9 @@
         (rows.length
           ? '<div class="grid grid--3">' + rows.map(card).join('') + '</div>'
           : '<div class="card card--soft"><div class="card__body">' + ui.empty({
-              icon: filtering ? 'search' : 'calendar',
-              title: filtering ? 'No events match' : 'No events yet',
-              text: filtering
+              icon: pastHighlights ? 'clock' : filtering ? 'search' : 'calendar',
+              title: pastHighlights ? 'No past events yet' : filtering ? 'No events match' : 'No events yet',
+              text: pastHighlights ? 'Completed events will appear here as highlights.' : filtering
                 ? 'Try a different search or clear the filters.'
                 : 'Create your first event to share news on the office TV.',
               actions: filtering

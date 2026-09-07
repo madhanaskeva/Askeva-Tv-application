@@ -344,7 +344,7 @@
   /* ---------------- page ---------------- */
 
   EVA.pages.employees = {
-    title: 'Employees',
+    title: 'Employee',
 
     setSearch: function (term) { state.search = term; },
     openForm: openForm,
@@ -358,7 +358,7 @@
 
       return '<div class="page__head">' +
           '<div class="page__head-text">' +
-            '<h1 class="page__title">Employees</h1>' +
+            '<h1 class="page__title">Employee</h1>' +
             '<p class="page__desc">' + stats.total + ' people across ' + stats.departments +
               ' departments. Birthdays and recognition on the TV are driven by this directory.</p>' +
           '</div>' +

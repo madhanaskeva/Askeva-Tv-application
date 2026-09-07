@@ -258,7 +258,7 @@
   /* ---------------- page ---------------- */
 
   EVA.pages.performers = {
-    title: 'Top Performers',
+    title: 'Employee Recognition',
     openForm: openForm,
 
     render: function () {
@@ -275,7 +275,7 @@
 
       return '<div class="page__head">' +
           '<div class="page__head-text">' +
-            '<h1 class="page__title">Top Performers</h1>' +
+            '<h1 class="page__title">Employee Recognition</h1>' +
             '<p class="page__desc">Recognise people for the day, the week and the month. ' +
               stats.published + ' of ' + stats.total + ' cards are live on the TV.</p>' +
           '</div>' +
