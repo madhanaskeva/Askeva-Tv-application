@@ -267,38 +267,61 @@
         past: { icon: 'clock', title: 'No recent birthdays', text: 'Birthdays from the last 30 days appear here.' }
       }[state.tab];
 
-      return '<div class="page__head">' +
-          '<div class="page__head-text">' +
-            '<h1 class="page__title">Birthday Wishes</h1>' +
-            '<p class="page__desc">' +
-              (stats.today
-                ? stats.today + ' ' + U.pluralize(stats.today, 'birthday') + ' today · ' + stats.live + ' live on the TV'
-                : 'No birthdays today — ' + stats.upcoming7 + ' coming up this week') +
-              '. Messages only reach the TV once published.</p>' +
+      var previewEmployee = data.rows[0] ? data.rows[0].employee : S.employees.all()[0];
+      var previewWish = previewEmployee ? S.birthdays.wishFor(previewEmployee.id) : null;
+      var previewMessage = previewWish ? previewWish.message : (previewEmployee ? S.birthdays.defaultMessage(previewEmployee) : 'Wishing you a day filled with happiness and success!');
+      var previewName = previewEmployee ? previewEmployee.name : 'Priya S';
+      var previewRole = previewEmployee ? previewEmployee.role : 'UI/UX Designer';
+      var previewImage = previewEmployee ? previewEmployee.photo : '';
+
+      return '<div class="birthday-template">' +
+        '<div class="birthday-template__crumbs">Content Management <span>›</span> Birthday Wishes</div>' +
+        '<h2 class="birthday-template__heading">Birthday Wishes</h2>' +
+        '<p class="birthday-template__subheading">Automatic birthday slides with customizable templates</p>' +
+        '<div class="birthday-template__tabs">' + tabs.map(function (t) {
+          return '<button class="birthday-template__tab' + (state.tab === t.key ? ' is-active' : '') + '" type="button" data-tab="' + t.key + '">' +
+            U.esc(t.label) + '</button>';
+        }).join('') + '</div>' +
+        '<div class="birthday-template__panel">' +
+          '<button class="btn btn--primary birthday-template__edit" type="button" data-act="edit-template">' + icon('edit', { size: 15 }) + 'Edit Template</button>' +
+          '<div class="birthday-template__preview" aria-label="Birthday template preview">' +
+            '<button class="birthday-template__arrow birthday-template__arrow--left" type="button" aria-label="Previous">' + icon('chevron-left', { size: 18 }) + '</button>' +
+            '<div class="birthday-template__hero">' +
+              (previewImage
+                ? '<img class="birthday-template__avatar" src="' + U.attr(previewImage) + '" alt="">'
+                : '<div class="birthday-template__avatar birthday-template__avatar--placeholder">' + icon('user', { size: 34 }) + '</div>') +
+              '<div class="birthday-template__text">' +
+                '<div class="birthday-template__wish">Happy Birthday</div>' +
+                '<div class="birthday-template__name">' + U.esc(previewName) + '</div>' +
+                '<div class="birthday-template__message">' + U.esc(previewMessage) + '</div>' +
+                '<div class="birthday-template__brand">' + icon('sparkles', { size: 20 }) + 'Askiyo</div>' +
+              '</div>' +
+            '</div>' +
+            '<button class="birthday-template__arrow birthday-template__arrow--right" type="button" aria-label="Next">' + icon('chevron-right', { size: 18 }) + '</button>' +
           '</div>' +
-          '<div class="page__actions">' +
-            '<button class="btn btn--soft" type="button" data-act="preview-all">' + icon('eye', { size: 16 }) + 'Preview TV</button>' +
-            '<button class="btn btn--primary" type="button" data-act="add">' + icon('plus', { size: 16 }) + 'Add birthday wish</button>' +
+          '<div class="birthday-template__dots">' +
+            '<span class="is-active"></span><span></span><span></span>' +
           '</div>' +
         '</div>' +
-
-        (stats.readyToPublish
-          ? '<div class="hint-bar" style="margin-bottom:18px">' + icon('info') +
-            '<span style="flex:1"><strong>' + stats.readyToPublish + ' ' +
-            U.pluralize(stats.readyToPublish, 'message') + '</strong> for today is written but not on the TV yet.</span>' +
-            '<button class="btn btn--xs btn--dark" type="button" data-act="publish-today">' +
-              icon('send', { size: 13 }) + 'Publish all</button></div>'
-          : '') +
-
-        '<div class="tabs">' + tabs.map(function (t) {
-          return '<button class="tab' + (state.tab === t.key ? ' is-active' : '') + '" type="button" data-tab="' + t.key + '">' +
-            icon(t.key === 'today' ? 'cake' : t.key === 'upcoming' ? 'calendar' : 'clock', { size: 15 }) +
-            U.esc(t.label) + '<span class="tab__count">' + t.count + '</span></button>';
-        }).join('') + '</div>' +
-
-        (data.rows.length
-          ? '<div class="grid grid--3">' + data.rows.map(function (r) { return card(r, data.bucket); }).join('') + '</div>'
-          : '<div class="card card--soft"><div class="card__body">' + ui.empty(empty) + '</div></div>');
+        '<div class="birthday-template__table-wrap">' +
+          '<div class="birthday-template__table-head">Today\'s Birthday Employees (' + data.rows.length + ')</div>' +
+          '<table class="birthday-template__table">' +
+            '<thead><tr><th>#</th><th>Photo</th><th>Name</th><th>Role</th><th>DOB</th><th>Actions</th></tr></thead>' +
+            '<tbody>' + (data.rows.length ? data.rows.slice(0, 3).map(function (r, index) {
+              var emp = r.employee;
+              var d = U.parseISO(emp.birthday);
+              return '<tr data-id="' + U.attr(emp.id) + '">' +
+                '<td>' + (index + 1) + '</td>' +
+                '<td>' + ui.avatar(emp, { size: 'sm' }) + '</td>' +
+                '<td><span class="birthday-template__person-name">' + U.esc(emp.name) + '</span></td>' +
+                '<td>' + U.esc(emp.role) + '</td>' +
+                '<td>' + (d ? U.formatDay(d) : '—') + '</td>' +
+                '<td><div class="birthday-template__actions"><button class="btn btn--soft btn--icon" type="button" data-act="edit" title="Edit">' + icon('edit', { size: 14 }) + '</button><button class="btn btn--soft btn--icon birthday-template__danger" type="button" data-act="unpublish" title="Remove">' + icon('trash', { size: 14 }) + '</button></div></td>' +
+              '</tr>';
+            }).join('') : '<tr><td colspan="6"><div class="empty-state">' + ui.empty(empty) + '</div></td></tr>') + '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>';
     },
 
     mount: function (root) {
