@@ -12,7 +12,8 @@
   var NAV = [
     { id: 'dashboard', label: 'Dashboard',     icon: 'dashboard' },
     { id: 'content',  label: 'Content Media', icon: 'layers' },
-    { id: 'tv',       label: 'TV Display',    icon: 'tv' },
+    { id: 'tv',       label: 'Live Playlist', icon: 'list' },
+    { id: 'notices',  label: 'Notices & Holidays', icon: 'calendar' },
     { id: 'settings', label: 'Settings',     icon: 'settings' }
   ];
 
@@ -51,13 +52,15 @@
   /* ---------------- shell ---------------- */
 
   function navCounts() {
+    var tvStats = EVA.services.tv.stats();
     return {
       employees: EVA.services.employees.stats().total,
       birthdays: EVA.services.birthdays.stats().today,
       announcements: EVA.services.announcements.stats().active,
       events: EVA.services.events.stats().active,
       performers: EVA.services.performers.stats().published,
-      achievements: EVA.services.achievements.stats().published
+      achievements: EVA.services.achievements.stats().published,
+      tv: tvStats.slides || 0
     };
   }
 
@@ -77,7 +80,7 @@
       if (n.id === 'announcements' && counts.announcements) badge = '<span class="nav__count">' + counts.announcements + '</span>';
       if (n.id === 'events' && counts.events) badge = '<span class="nav__count">' + counts.events + '</span>';
       if (n.id === 'achievements' && counts.achievements) badge = '<span class="nav__count">' + counts.achievements + '</span>';
-      if (n.id === 'tv') badge = tvStats.live ? '<span class="nav__dot" title="Live"></span>' : '';
+      if (n.id === 'tv') badge = counts.tv ? '<span class="nav__count">' + counts.tv + '</span>' : '';
       return '<a class="nav__item' + active + '" href="#/' + n.id + '">' +
         icon(n.icon) + '<span>' + U.esc(n.label) + '</span>' + badge + '</a>';
     }).join('');
@@ -113,13 +116,14 @@
       '</div>' +
     '</aside>' +
     '<div class="sidebar__scrim" id="sidebarScrim"></div>';
-  }
+  }   
 
   function renderHeader() {
     var page = EVA.pages[app.route.name];
     var pageTitle = page.getTitle ? page.getTitle(app.route.params) : page.title;
     var pending = EVA.services.tv.pending();
-    return '<header class="header">' +
+    var isDashboard = app.route.name === 'dashboard';
+    return '<header class="header' + (isDashboard ? ' header--dashboard' : '') + '">' +
       '<div class="header__inner">' +
         '<button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">' + icon('menu') + '</button>' +
         (CONTENT_ROUTES.indexOf(app.route.name) !== -1
@@ -130,18 +134,20 @@
           '<div class="header__title">' + U.esc(pageTitle) + '</div>' +
           '<div class="header__sub">' + U.esc(U.longDate()) + '</div>' +
         '</div>' +
+        (isDashboard ? '<div style="flex: 1;"></div>' : 
         '<div class="search">' + icon('search') +
           '<input type="search" id="globalSearch" placeholder="Search employees, announcements…" aria-label="Search">' +
           '<kbd>/</kbd>' +
-        '</div>' +
+        '</div>') +
         '<div class="header__actions">' +
+          (isDashboard ? '' : 
           '<a class="btn btn--soft btn--sm" href="' + U.attr(EVA.services.settings.tvUrl()) + '" target="_blank" rel="noopener">' +
             icon('external-link', { size: 15 }) + 'Open TV' +
           '</a>' +
           '<button class="btn btn--primary btn--sm" type="button" data-app-action="push">' +
             icon('send', { size: 15 }) + 'Push to TV' +
           '</button>' +
-          '<span class="header__divider"></span>' +
+          '<span class="header__divider"></span>') +
           '<button class="icon-btn" type="button" data-app-action="notifications" aria-label="Pending changes">' +
             icon('bell') + (pending.changed ? '<i class="icon-btn__badge"></i>' : '') +
           '</button>' +
@@ -150,7 +156,6 @@
               '<span class="avatar avatar--dark">AD</span>' +
               '<span class="admin-btn__meta">' +
                 '<span class="admin-btn__name">Admin</span>' +
-                '<span class="admin-btn__role">Office TV owner</span>' +
               '</span>' + icon('chevron-down') +
             '</button>' +
             '<div class="menu" id="adminMenu" hidden>' +

@@ -39,6 +39,13 @@
     return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
   };
 
+  U.greeting = function () {
+    var h = new Date().getHours();
+    if (h < 12) return 'morning';
+    if (h < 17) return 'afternoon';
+    return 'evening';
+  };
+
   U.slug = function (s) {
     return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   };

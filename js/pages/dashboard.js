@@ -212,7 +212,7 @@
     render: function () {
       return '<div class="page__head">' +
           '<div class="page__head-text">' +
-            '<h1 class="page__title">Good ' + greeting() + ', Admin</h1>' +
+            '<h1 class="page__title">Good ' + U.greeting() + ', Admin</h1>' +
             '<p class="page__desc">Here is what the office TV is showing, what is ready to publish, and who to celebrate today.</p>' +
           '</div>' +
           '<div class="page__actions">' +
@@ -300,10 +300,4 @@
     }
   }
 
-  function greeting() {
-    var h = new Date().getHours();
-    if (h < 12) return 'morning';
-    if (h < 17) return 'afternoon';
-    return 'evening';
-  }
 })(window.EVA = window.EVA || {});

@@ -80,7 +80,7 @@
   --t-slow: .38s var(--ease-out);
 
   /* --- Layout --- */
-  --sidebar-w: 252px;
+  --sidebar-w: 280px;
   --header-h: 68px;
   --gutter: 22px;
 }
