@@ -82,33 +82,11 @@
           '<div class="np-stat"><div class="np-stat__k">Pending</div><div class="np-stat__v">' +
             (pending.changed ? '<em>' + pending.count + '</em>' : '0') + '</div></div>' +
         '</div>' +
-        '<div class="now-playing__actions">' +
-          '<button class="btn btn--primary btn--sm" type="button" data-action="push">' +
-            icon('send', { size: 15 }) + (pending.changed ? 'Push changes to TV' : 'Re-push to TV') + '</button>' +
-          '<button class="btn btn--soft btn--sm" type="button" data-action="preview">' +
-            icon('eye', { size: 15 }) + 'Preview</button>' +
-          '<a class="btn btn--soft btn--sm" href="#/tv">' + icon('sliders', { size: 15 }) + 'Manage</a>' +
-        '</div>' +
+     
       '</div>' +
     '</div>';
   }
 
-  function quickActions() {
-    var items = [
-      { action: 'add-employee', icon: 'user-plus', label: 'Add Employee', sub: 'New directory entry' },
-      { action: 'add-wish', icon: 'cake', label: 'Add Birthday Wish', sub: 'Write a message' },
-      { action: 'add-performer', icon: 'trophy', label: 'Add Top Performer', sub: 'Recognise someone' },
-      { action: 'add-announcement', icon: 'megaphone', label: 'Create Announcement', sub: 'Notice or event' },
-      { action: 'push', icon: 'send', label: 'Push to TV', sub: 'Publish the deck', accent: true }
-    ];
-    return '<div class="qa-grid">' + items.map(function (i) {
-      return '<button class="qa' + (i.accent ? ' qa--accent' : '') + '" type="button" data-action="' + i.action + '">' +
-        '<span class="qa__icon">' + icon(i.icon) + '</span>' +
-        '<span><span class="qa__label">' + U.esc(i.label) + '</span>' +
-        '<span class="qa__sub">' + U.esc(i.sub) + '</span></span>' +
-      '</button>';
-    }).join('') + '</div>';
-  }
 
   function todayPanel() {
     var bdays = S.birthdays.today();
@@ -228,10 +206,7 @@
           nowPlaying() +
         '</div>' +
 
-        '<div class="section">' +
-          '<div class="rail-label">Quick actions</div>' +
-          quickActions() +
-        '</div>' +
+         
 
         '<div class="split">' +
           '<div class="stack">' + activityPanel() + '</div>' +
