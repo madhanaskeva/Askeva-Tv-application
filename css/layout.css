@@ -323,6 +323,7 @@
   height: var(--header-h);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 14px;
   padding: 0 8px 0 20px;
   background: rgba(255, 255, 255, .88);
@@ -355,7 +356,7 @@
   margin-top: 2px;
 }
 
-.search {
+/* .search {
   flex: 1;
   max-width: 400px;
   margin-left: auto;
@@ -368,7 +369,7 @@
   border: 1px solid var(--line-2);
   border-radius: var(--r-md);
   transition: border-color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
-}
+} */
 
 .search:focus-within {
   border-color: var(--ink-600);
