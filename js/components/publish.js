@@ -15,7 +15,7 @@
 
   var TYPE_LABEL = {
     birthday: 'Birthday', performer: 'Top performer',
-    announcement: 'Announcement', recognition: 'Recognition', idle: 'Standby'
+    announcement: 'Announcement', recognition: 'Recognition', engagement: 'Engagement Hub', idle: 'Standby'
   };
 
   /** Small summary block used inside the confirm dialog. */
@@ -44,7 +44,7 @@
    */
   P.push = function (opts) {
     opts = opts || {};
-    var pending = tv().pending();
+    var pending = tv().pending(opts);
 
     if (pending.empty) {
       ui.toast.error('Nothing to publish', 'Publish some content first, then push it to the TV.');
@@ -62,8 +62,10 @@
       preview: deckSummary(pending.slides)
     }).then(function (ok) {
       if (!ok) return false;
-      tv().publish({ reason: opts.reason });
-      P.success();
+      var publishOpts = { reason: opts.reason };
+      if (Object.prototype.hasOwnProperty.call(opts, 'engagementId')) publishOpts.engagementId = opts.engagementId;
+      tv().publish(publishOpts);
+      P.success({ text: opts.successText });
       return true;
     });
   };

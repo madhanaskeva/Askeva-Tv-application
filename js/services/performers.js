@@ -17,7 +17,7 @@
   ];
 
   function normalize(data) {
-    return {
+    var normalized = {
       employeeId: data.employeeId || '',
       period: ['day', 'week', 'month'].indexOf(data.period) > -1 ? data.period : 'day',
       rank: Math.max(1, parseInt(data.rank, 10) || 1),
@@ -26,6 +26,8 @@
       status: data.status === 'published' ? 'published' : 'draft',
       publishedAt: data.publishedAt || null
     };
+    if (data.photo !== undefined) normalized.photo = String(data.photo || '').trim();
+    return normalized;
   }
 
   var service = {

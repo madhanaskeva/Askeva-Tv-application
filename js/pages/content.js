@@ -12,7 +12,8 @@
     { id: 'announcements', label: 'Announcements', description: 'Share notices, updates, and office moments.', icon: 'megaphone', count: function () { return S.announcements.stats().active; }, unit: 'active' },
     { id: 'events', label: 'Events', description: 'Keep upcoming events visible to the whole team.', icon: 'calendar', count: function () { return S.events.stats().active; }, unit: 'upcoming' },
     { id: 'events/past', label: 'Past Events Highlights', description: 'Review completed events and keep the best moments visible.', icon: 'clock', count: function () { return S.events.all().filter(function (event) { return event.endDate && event.endDate < U.today(); }).length; }, unit: 'highlights' },
-    { id: 'achievements', label: 'Achievements & Awards', description: 'Showcase milestones, awards, and wins from across the team.', icon: 'award', count: function () { return S.achievements.stats().published; }, unit: 'published' }
+    { id: 'achievements', label: 'Achievements & Awards', description: 'Showcase milestones, awards, and wins from across the team.', icon: 'award', count: function () { return S.achievements.stats().published; }, unit: 'published' },
+    { id: 'sales-kpis', label: 'Sales KPI Metrics', description: 'Record weekly/monthly sales performance, track growth trends, and broadcast metrics.', icon: 'activity', count: function () { return (S.salesKpis ? S.salesKpis.stats().total : 0); }, unit: 'records' }
   ];
 
   EVA.pages.content = {

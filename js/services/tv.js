@@ -29,6 +29,8 @@
     recognition:  { icon: 'sparkles',  name: 'Employee Recognition', hint: 'Montage of everyone recognised this period' },
     event:        { icon: 'calendar',  name: 'Events & Celebrations',hint: 'Published events inside their date window' },
     achievement:  { icon: 'award',     name: 'Achievements',         hint: 'Intern conversions, work anniversaries, etc.' },
+    kpi:          { icon: 'activity',  name: 'Sales KPI Metrics',    hint: 'Weekly & monthly growth trends and metrics' },
+    engagement:   { icon: 'sparkles',  name: 'Engagement Hub',       hint: 'A selected employee interaction with a QR code' },
     idle:         { icon: 'tv',        name: 'AskEVA Standby Card',  hint: 'Branded filler card with the time' }
   };
 
@@ -97,6 +99,12 @@
       opts = opts || {};
       var settings = EVA.services.settings.get();
       var slides = [];
+      /* An engagement is deliberately selected, unlike playlist slots. The
+         selected id lives on the shared broadcast document so later generic
+         pushes retain the live engagement instead of silently removing it. */
+      var selectedEngagementId = Object.prototype.hasOwnProperty.call(opts, 'engagementId')
+        ? opts.engagementId
+        : (service.broadcast().activeEngagementId || '');
 
       service.enabledSlots().forEach(function (slot) {
         var dur = slot.duration || settings.defaultDuration;
@@ -152,6 +160,7 @@
               duration: dur,
               label: meta.title + ' — ' + emp.name,
               data: Object.assign(person(emp), {
+                photo: p.photo || emp.photo,
                 rank: p.rank,
                 title: p.title,
                 description: p.description,
@@ -240,6 +249,26 @@
           });
         }
 
+        if (slot.type === 'kpi') {
+          if (EVA.services && EVA.services.salesKpis && typeof EVA.services.salesKpis.forTV === 'function') {
+            EVA.services.salesKpis.forTV().forEach(function (rec) {
+              var details = EVA.services.salesKpis.details(rec);
+              var trend = EVA.services.salesKpis.trend(rec, 4);
+              slides.push({
+                id: 'sl_kpi_' + rec.id,
+                type: 'kpi',
+                duration: dur,
+                label: 'KPI — ' + (rec.teamName || rec.department) + ' (' + rec.periodLabel + ')',
+                data: {
+                  record: rec,
+                  details: details,
+                  trend: trend
+                }
+              });
+            });
+          }
+        }
+
         if (slot.type === 'idle') {
           slides.push({
             id: 'sl_idle',
@@ -250,6 +279,32 @@
           });
         }
       });
+
+      /* Engagements are explicitly selected by the Hub push action. They use
+         the same slide deck and broadcast document as every other module. */
+      if (selectedEngagementId && EVA.services.engagements) {
+        var engagement = EVA.services.engagements.get(selectedEngagementId);
+        if (engagement && !EVA.services.engagements.expired(engagement)) {
+          var firstQuestion = (engagement.questions || [])[0] || {};
+          slides.push({
+            id: 'sl_eng_' + engagement.id,
+            type: 'engagement',
+            duration: settings.defaultDuration || 10,
+            label: 'Engagement — ' + engagement.title,
+            data: {
+              engagementId: engagement.id,
+              engagementType: engagement.type,
+              typeLabel: U.titleCase(engagement.type),
+              title: engagement.title,
+              message: engagement.message,
+              question: firstQuestion.label || '',
+              options: ['poll', 'quiz'].indexOf(engagement.type) > -1 ? (firstQuestion.options || []).slice(0, 4) : [],
+              engagementUrl: engagement.engagementUrl,
+              endLabel: EVA.services.engagements.endLabel ? EVA.services.engagements.endLabel(engagement) : ''
+            }
+          });
+        }
+      }
 
       return slides;
     },
@@ -278,8 +333,8 @@
     },
 
     /** Slides that WOULD publish, but are not on air yet. */
-    pending: function () {
-      var next = service.buildSlides();
+    pending: function (opts) {
+      var next = service.buildSlides(opts);
       var live = service.liveSlides();
       var liveIds = live.map(function (s) { return s.id; });
       var same = JSON.stringify(next) === JSON.stringify(live);
@@ -308,14 +363,18 @@
           store.update('wishes', 'wish_01', { status: 'draft', publishedAt: null });
         }
       }
-      var slides = service.buildSlides(opts);
       var prev = service.broadcast();
+      var activeEngagementId = Object.prototype.hasOwnProperty.call(opts, 'engagementId')
+        ? opts.engagementId
+        : (prev.activeEngagementId || '');
+      var slides = service.buildSlides({ engagementId: activeEngagementId });
       var next = {
         live: true,
         slides: slides,
         publishedAt: new Date().toISOString(),
         publishedBy: opts.by || 'Admin',
         revision: (prev.revision || 0) + 1,
+        activeEngagementId: activeEngagementId || '',
         settings: EVA.services.settings.get()
       };
       store.writeDoc(BROADCAST, next, { action: 'publish' });
@@ -323,6 +382,16 @@
         opts.reason ||
         ('TV updated — <strong>' + slides.length + ' ' + U.pluralize(slides.length, 'slide') + '</strong> pushed to the office display'));
       return next;
+    },
+
+    /** Push one Engagement Hub record through the same broadcast document. */
+    pushEngagement: function (engagementId, reason) {
+      var engagement = EVA.services.engagements && EVA.services.engagements.get(engagementId);
+      if (!engagement || EVA.services.engagements.expired(engagement)) return null;
+      return service.publish({
+        engagementId: engagementId,
+        reason: reason || ('Engagement <strong>' + U.esc(engagement.title) + '</strong> pushed to the TV')
+      });
     },
 
     /** Re-push the same deck; bumps the revision so the TV reloads. */

@@ -20,7 +20,11 @@
     THEMES: THEMES,
 
     get: function () {
-      return Object.assign(EVA.seed.settings(), store.readDoc(COLL));
+      var defaults = EVA.seed.settings();
+      var saved = store.readDoc(COLL);
+      return Object.assign({}, defaults, saved, {
+        birthdayTemplate: Object.assign({}, defaults.birthdayTemplate, saved.birthdayTemplate || {})
+      });
     },
 
     validate: function (data) {
@@ -63,3 +67,4 @@
   EVA.services = EVA.services || {};
   EVA.services.settings = service;
 })(window.EVA = window.EVA || {});
+                         
