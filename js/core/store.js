@@ -20,7 +20,7 @@
       window.localStorage.removeItem(k);
       return true;
     } catch (e) { return false; }
-  })();
+  })();      
 
   function key(collection) { return NS + '.' + collection; }
 

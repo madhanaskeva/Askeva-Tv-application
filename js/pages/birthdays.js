@@ -7,7 +7,7 @@
   var U = EVA.utils, ui = EVA.ui, icon = EVA.icon;
   var S = EVA.services;
 
-  var state = { tab: 'today' };
+  var state = { tab: 'today', previewIndex: 0 };
 
   function slideFor(emp, message) {
     return {
@@ -145,7 +145,7 @@
           }
           var saved;
           if (existing) {
-            saved = S.birthdays.saveMessage(existing.id, check.data.message, d.photo);
+            saved = S.birthdays.saveMessage(existing.id, check.data.message, d.photo, publish ? undefined : 'draft');
           } else {
             saved = S.birthdays.create({ employeeId: check.data.employeeId, message: check.data.message, photo: d.photo });
           }
@@ -154,8 +154,13 @@
         }
 
         c.el.querySelector('[data-save]').addEventListener('click', function () {
+          var employeeId = form.elements.employeeId.value;
+          var existingWish = S.birthdays.wishFor(employeeId);
           var saved = persist(false);
           if (!saved) return;
+          if (existingWish && existingWish.status === 'published') {
+            S.tv.publish({ reason: 'Birthday wish saved as draft' });
+          }
           ui.toast.success('Message saved', 'Publish it when you are ready.');
           c.close();
           if (opts.onSaved) opts.onSaved();
@@ -185,6 +190,109 @@
             if (opts.onSaved) opts.onSaved();
             EVA.app.refresh();
           });
+        });
+      }
+    });
+  }
+
+  function openTemplateEditor() {
+    var settings = S.settings.get();
+    var t = settings.birthdayTemplate || {};
+    var textFields = [
+      { label: 'Brand suffix', name: 'brandSuffix', value: t.brandSuffix, placeholder: ' SIGNAGE' },
+      { label: 'Brand subtitle', name: 'brandSubtitle', value: t.brandSubtitle, placeholder: 'CELEBRATION REEL' },
+      { label: 'Feed label', name: 'feedText', value: t.feedText, placeholder: 'FEED: CHANNEL 01' },
+      { label: 'Feed details', name: 'feedMeta', value: t.feedMeta, placeholder: '1080p60 HDR10' },
+      { label: 'Photo badge', name: 'photoBadge', value: t.photoBadge, placeholder: 'SPOTLIGHT HONOREE' },
+      { label: 'Kicker', name: 'kicker', value: t.kicker, placeholder: 'SPECIAL MILESTONE BROADCAST' },
+      { label: 'Title line 1', name: 'titleMain', value: t.titleMain, placeholder: 'HAPPY' },
+      { label: 'Title line 2', name: 'titleAccent', value: t.titleAccent, placeholder: 'BIRTHDAY!' },
+      { label: 'Footer left', name: 'footerLeft', value: t.footerLeft, placeholder: 'CINEMATRIX ENGINE' },
+      { label: 'Footer right', name: 'footerRight', value: t.footerRight, placeholder: 'EDID: 3840x2160 UHD CANVAS' }
+    ];
+    var fieldPair = function (from, to) {
+      return '<div class="field-row">' + textFields.slice(from, to).map(function (f) {
+        return ui.field({ label: f.label, name: f.name, value: f.value || '', required: true, placeholder: f.placeholder });
+      }).join('') + '</div>';
+    };
+    var body = '<form id="templateForm" novalidate>' +
+      fieldPair(0, 2) + fieldPair(2, 4) + fieldPair(4, 6) + fieldPair(6, 8) + fieldPair(8, 10) +
+      ui.field({
+        type: 'textarea', label: 'Default birthday message', name: 'defaultBirthdayMessage',
+        value: settings.defaultBirthdayMessage || '', required: true, rows: 3, maxlength: 200,
+        placeholder: 'Wishing you an amazing year ahead!',
+        hint: 'Used for new birthday messages after Happy birthday [name].'
+      }) +
+      '<div class="field-row field-row--3">' +
+        ui.field({ type: 'select', label: 'Background theme', name: 'backgroundTheme', value: t.backgroundTheme || 'midnight', options: [
+          { value: 'midnight', label: 'Midnight' }, { value: 'ocean', label: 'Ocean' },
+          { value: 'sunset', label: 'Sunset' }, { value: 'custom', label: 'Custom colors' }
+        ] }) +
+        ui.field({ type: 'color', label: 'Background color', name: 'backgroundColor', value: t.backgroundColor || '#08150E' }) +
+        ui.field({ type: 'color', label: 'Background accent', name: 'backgroundAccent', value: t.backgroundAccent || '#163524' }) +
+      '</div>' +
+      '<div class="field-row field-row--3">' +
+        ui.field({ type: 'color', label: 'Accent color', name: 'accentColor', value: t.accentColor || '#C7F53F' }) +
+        ui.field({ type: 'color', label: 'Text color', name: 'textColor', value: t.textColor || '#FFFFFF' }) +
+        ui.field({ type: 'color', label: 'Muted text color', name: 'mutedColor', value: t.mutedColor || '#A7B1AA' }) +
+      '</div>' +
+      '<div class="field-row field-row--3">' +
+        ui.field({ type: 'color', label: 'Content panel color', name: 'panelColor', value: t.panelColor || '#10281B' }) +
+        ui.field({ type: 'color', label: 'Particle color', name: 'particleColor', value: t.particleColor || '#C7F53F' }) +
+        ui.field({ type: 'number', label: 'Particle count', name: 'particleCount', value: t.particleCount === undefined ? 14 : t.particleCount, min: 0, max: 50 }) +
+      '</div>' +
+      '<div class="field-row">' +
+        ui.field({ type: 'number', label: 'Particle opacity (0-1)', name: 'particleOpacity', value: t.particleOpacity === undefined ? 0.5 : t.particleOpacity, min: 0, max: 1 }) +
+        ui.field({ type: 'number', label: 'Particle speed (seconds)', name: 'particleSpeed', value: t.particleSpeed === undefined ? 18 : t.particleSpeed, min: 4, max: 60 }) +
+      '</div>' +
+      '<div class="hint-bar" style="margin-top:4px">' + icon('sparkles') +
+        '<span style="flex:1">Existing birthday messages will not be changed.</span>' +
+      '</div>' +
+    '</form>';
+
+    ui.modal({
+      title: 'Edit birthday template',
+      sub: 'Edit the content and theme used on birthday TV slides',
+      icon: 'edit',
+      size: 'lg',
+      body: body,
+      foot:
+        '<button class="btn btn--soft" type="button" data-close>Cancel</button>' +
+        '<button class="btn btn--primary" type="button" data-save>' + icon('save', { size: 16 }) + 'Save template</button>',
+      onMount: function (c) {
+        var form = c.el.querySelector('#templateForm');
+        c.el.querySelector('[data-save]').addEventListener('click', function () {
+          var data = ui.readForm(form);
+          var errors = {};
+          if (!String(data.defaultBirthdayMessage || '').trim()) errors.defaultBirthdayMessage = 'Add a default message';
+          else if (String(data.defaultBirthdayMessage).trim().length > 200) errors.defaultBirthdayMessage = 'Keep it under 200 characters';
+          textFields.forEach(function (field) {
+            if (!String(data[field.name] || '').trim()) errors[field.name] = 'This field is required';
+          });
+          if (Object.keys(errors).length) {
+            ui.showErrors(form, errors);
+            return;
+          }
+          var template = Object.assign({}, t);
+          textFields.forEach(function (field) { template[field.name] = String(data[field.name]).trim(); });
+          template.backgroundTheme = data.backgroundTheme || 'midnight';
+          template.backgroundColor = data.backgroundColor || '#08150E';
+          template.backgroundAccent = data.backgroundAccent || '#163524';
+          template.accentColor = data.accentColor || '#C7F53F';
+          template.textColor = data.textColor || '#FFFFFF';
+          template.mutedColor = data.mutedColor || '#A7B1AA';
+          template.panelColor = data.panelColor || '#10281B';
+          template.particleColor = data.particleColor || '#C7F53F';
+          template.particleCount = Math.max(0, Math.min(50, parseInt(data.particleCount, 10) || 0));
+          template.particleOpacity = Math.max(0, Math.min(1, parseFloat(data.particleOpacity) || 0));
+          template.particleSpeed = Math.max(4, Math.min(60, parseInt(data.particleSpeed, 10) || 18));
+          S.settings.save({
+            defaultBirthdayMessage: String(data.defaultBirthdayMessage).trim(),
+            birthdayTemplate: template
+          });
+          ui.toast.success('Template saved', 'New birthday slides will use this template.');
+          c.close();
+          EVA.app.refresh();
         });
       }
     });
@@ -242,7 +350,43 @@
   function bucketRows() {
     if (state.tab === 'today') return { rows: S.birthdays.today(), bucket: 'today' };
     if (state.tab === 'upcoming') return { rows: S.birthdays.upcoming(), bucket: 'upcoming' };
+    if (state.tab === 'drafts') return { rows: S.birthdays.drafts(), bucket: 'drafts' };
     return { rows: S.birthdays.past(), bucket: 'past' };
+  }
+
+  function previewEmployees() {
+    var rows = bucketRows().rows;
+    var employees = rows.length
+      ? rows.map(function (row) { return row.employee; })
+      : S.employees.all();
+    return employees.length ? employees : [{ id: 'preview', name: 'Priya S', role: 'UI/UX Designer' }];
+  }
+
+  function transitionPreview(root, employee) {
+    var stage = root.querySelector('.birthday-template__preview-stage');
+    if (!stage || !employee) return;
+
+    var wish = S.birthdays.wishFor(employee.id);
+    var message = wish ? wish.message : S.birthdays.defaultMessage(employee);
+    var slide = slideFor(employee, message);
+    var old = stage.querySelector('.slide:not(.is-leaving)') || stage.querySelector('.slide:last-child');
+    var wrapper = document.createElement('div');
+    wrapper.innerHTML = EVA.slides.render(slide, S.settings.get());
+    var next = wrapper.firstElementChild;
+    if (!next) return;
+
+    next.classList.add('is-entering');
+    stage.appendChild(next);
+    if (old) {
+      old.classList.add('is-leaving');
+      setTimeout(function () {
+        if (old.parentNode) old.parentNode.removeChild(old);
+      }, 500);
+    }
+
+    Array.prototype.forEach.call(root.querySelectorAll('[data-preview-index]'), function (dot, index) {
+      dot.classList.toggle('is-active', index === state.previewIndex);
+    });
   }
 
   /* ---------------- page ---------------- */
@@ -258,47 +402,69 @@
       var tabs = [
         { key: 'today', label: 'Today', count: stats.today },
         { key: 'upcoming', label: 'Upcoming', count: S.birthdays.upcoming().length },
-        { key: 'past', label: 'Past', count: S.birthdays.past().length }
+        { key: 'past', label: 'Past', count: S.birthdays.past().length },
+        { key: 'drafts', label: 'Drafts', count: stats.drafts }
       ];
 
       var empty = {
         today: { icon: 'cake', title: 'No birthdays today', text: 'Check the Upcoming tab to prepare messages in advance.' },
         upcoming: { icon: 'calendar', title: 'Nothing in the next 30 days', text: 'Birthdays are read from the employee directory.' },
-        past: { icon: 'clock', title: 'No recent birthdays', text: 'Birthdays from the last 30 days appear here.' }
+        past: { icon: 'clock', title: 'No recent birthdays', text: 'Birthdays from the last 30 days appear here.' },
+        drafts: { icon: 'file-text', title: 'No birthday drafts', text: 'Saved birthday messages waiting to be published will appear here.' }
       }[state.tab];
 
-      return '<div class="page__head">' +
-          '<div class="page__head-text">' +
-            '<h1 class="page__title">Birthday Wishes</h1>' +
-            '<p class="page__desc">' +
-              (stats.today
-                ? stats.today + ' ' + U.pluralize(stats.today, 'birthday') + ' today · ' + stats.live + ' live on the TV'
-                : 'No birthdays today — ' + stats.upcoming7 + ' coming up this week') +
-              '. Messages only reach the TV once published.</p>' +
-          '</div>' +
-          '<div class="page__actions">' +
-            '<button class="btn btn--soft" type="button" data-act="preview-all">' + icon('eye', { size: 16 }) + 'Preview TV</button>' +
-            '<button class="btn btn--primary" type="button" data-act="add">' + icon('plus', { size: 16 }) + 'Add birthday wish</button>' +
-          '</div>' +
-        '</div>' +
+      var previewList = previewEmployees();
+      state.previewIndex = Math.max(0, Math.min(state.previewIndex, previewList.length - 1));
+      var previewEmployee = previewList[state.previewIndex];
+      var previewWish = previewEmployee ? S.birthdays.wishFor(previewEmployee.id) : null;
+      var previewMessage = previewWish ? previewWish.message : (previewEmployee ? S.birthdays.defaultMessage(previewEmployee) : 'Wishing you a day filled with happiness and success!');
+      var previewName = previewEmployee ? previewEmployee.name : 'Priya S';
+      var previewRole = previewEmployee ? previewEmployee.role : 'UI/UX Designer';
+      var previewSettings = S.settings.get();
+      var template = previewSettings.birthdayTemplate || {};
+      var previewSlide = slideFor(previewEmployee || { id: 'preview', name: previewName, role: previewRole }, previewMessage);
 
-        (stats.readyToPublish
-          ? '<div class="hint-bar" style="margin-bottom:18px">' + icon('info') +
-            '<span style="flex:1"><strong>' + stats.readyToPublish + ' ' +
-            U.pluralize(stats.readyToPublish, 'message') + '</strong> for today is written but not on the TV yet.</span>' +
-            '<button class="btn btn--xs btn--dark" type="button" data-act="publish-today">' +
-              icon('send', { size: 13 }) + 'Publish all</button></div>'
-          : '') +
-
-        '<div class="tabs">' + tabs.map(function (t) {
-          return '<button class="tab' + (state.tab === t.key ? ' is-active' : '') + '" type="button" data-tab="' + t.key + '">' +
-            icon(t.key === 'today' ? 'cake' : t.key === 'upcoming' ? 'calendar' : 'clock', { size: 15 }) +
-            U.esc(t.label) + '<span class="tab__count">' + t.count + '</span></button>';
+      return '<div class="birthday-template">' +
+        '<div class="birthday-template__crumbs">Content Management <span>›</span> Birthday Wishes</div>' +
+        '<h2 class="birthday-template__heading">Birthday Wishes</h2>' +
+        '<p class="birthday-template__subheading">Automatic birthday slides with customizable templates</p>' +
+        '<div class="birthday-template__tabs">' + tabs.map(function (t) {
+          return '<button class="birthday-template__tab' + (state.tab === t.key ? ' is-active' : '') + '" type="button" data-tab="' + t.key + '">' +
+            U.esc(t.label) + '</button>';
         }).join('') + '</div>' +
-
-        (data.rows.length
-          ? '<div class="grid grid--3">' + data.rows.map(function (r) { return card(r, data.bucket); }).join('') + '</div>'
-          : '<div class="card card--soft"><div class="card__body">' + ui.empty(empty) + '</div></div>');
+        '<div class="birthday-template__panel">' +
+          '<button class="btn btn--primary birthday-template__edit" type="button" data-act="edit-template">' + icon('edit', { size: 15 }) + 'Edit Template</button>' +
+          '<div class="birthday-template__preview birthday-template__preview--tv" aria-label="Birthday template preview">' +
+            '<button class="birthday-template__arrow birthday-template__arrow--left" type="button" data-preview-slide="previous" aria-label="Previous birthday slide">' + icon('chevron-left', { size: 18 }) + '</button>' +
+            '<div class="slide-stage birthday-template__preview-stage">' + EVA.slides.render(previewSlide, previewSettings) + '</div>' +
+            '<button class="birthday-template__arrow birthday-template__arrow--right" type="button" data-preview-slide="next" aria-label="Next birthday slide">' + icon('chevron-right', { size: 18 }) + '</button>' +
+          '</div>' +
+          '<div class="birthday-template__dots">' + previewList.map(function (_, index) {
+            return '<button type="button" class="' + (index === state.previewIndex ? 'is-active' : '') + '" data-preview-index="' + index + '" aria-label="Show birthday slide ' + (index + 1) + '"></button>';
+          }).join('') + '</div>' +
+        '</div>' +
+        '<div class="birthday-template__table-wrap">' +
+          '<div class="birthday-template__table-head">' + (state.tab === 'drafts' ? 'Birthday Drafts' : 'Today\'s Birthday Employees') + ' (' + data.rows.length + ')</div>' +
+          '<table class="birthday-template__table">' +
+            '<thead><tr><th>#</th><th>Photo</th><th>Name</th><th>Role</th><th>DOB</th><th>Actions</th></tr></thead>' +
+            '<tbody>' + (data.rows.length ? (state.tab === 'drafts' ? data.rows : data.rows.slice(0, 3)).map(function (r, index) {
+              var emp = r.employee;
+              var hasBirthday = !!U.parseISO(emp.birthday);
+              var rowAction = state.tab === 'drafts'
+                ? '<button class="btn btn--soft btn--icon birthday-template__danger" type="button" data-act="delete-draft" title="Delete draft">' + icon('trash', { size: 14 }) + '</button>'
+                : '<button class="btn btn--soft btn--icon birthday-template__danger" type="button" data-act="unpublish" title="Remove">' + icon('trash', { size: 14 }) + '</button>';
+              return '<tr data-id="' + U.attr(emp.id) + '">' +
+                '<td>' + (index + 1) + '</td>' +
+                '<td>' + ui.avatar(emp, { size: 'sm' }) + '</td>' +
+                '<td><span class="birthday-template__person-name">' + U.esc(emp.name) + '</span></td>' +
+                '<td>' + U.esc(emp.role) + '</td>' +
+                '<td>' + (hasBirthday ? U.formatDay(emp.birthday) : '—') + '</td>' +
+                '<td><div class="birthday-template__actions"><button class="btn btn--soft btn--icon" type="button" data-act="edit" title="Edit">' + icon('edit', { size: 14 }) + '</button>' + rowAction + '</div></td>' +
+              '</tr>';
+            }).join('') : '<tr><td colspan="6"><div class="empty-state">' + ui.empty(empty) + '</div></td></tr>') + '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>';
     },
 
     mount: function (root) {
@@ -307,7 +473,24 @@
 
         if ((t = e.target.closest('[data-tab]'))) {
           state.tab = t.dataset.tab;
+          state.previewIndex = 0;
           EVA.app.refresh();
+          return;
+        }
+
+        if ((t = e.target.closest('[data-preview-slide]'))) {
+          var employees = previewEmployees();
+          var previewCount = employees.length;
+          state.previewIndex = t.dataset.previewSlide === 'next'
+            ? (state.previewIndex + 1) % previewCount
+            : (state.previewIndex - 1 + previewCount) % previewCount;
+          transitionPreview(root, employees[state.previewIndex]);
+          return;
+        }
+
+        if ((t = e.target.closest('[data-preview-index]'))) {
+          state.previewIndex = parseInt(t.dataset.previewIndex, 10) || 0;
+          transitionPreview(root, previewEmployees()[state.previewIndex]);
           return;
         }
 
@@ -319,6 +502,25 @@
 
         if (act === 'add') { openEditor(null); return; }
         if (act === 'preview-all') { EVA.publish.preview({}); return; }
+        if (act === 'edit-template') { openTemplateEditor(); return; }
+
+        if (act === 'delete-draft') {
+          var draft = S.birthdays.wishFor(empId);
+          if (!draft) return;
+          ui.confirm({
+            title: 'Delete this birthday draft?',
+            text: 'The saved birthday message will be permanently removed.',
+            confirmLabel: 'Delete draft',
+            tone: 'danger',
+            icon: 'trash'
+          }).then(function (ok) {
+            if (!ok) return;
+            S.birthdays.remove(draft.id);
+            ui.toast.info('Draft deleted');
+            EVA.app.refresh();
+          });
+          return;
+        }
 
         if (act === 'publish-today') {
           var pending = S.birthdays.today().filter(function (b) { return b.wish && b.wish.status === 'draft'; });

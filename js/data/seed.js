@@ -218,7 +218,8 @@
       { id: 'slot_recog', type: 'recognition', name: 'Employee Recognition', enabled: true,  duration: 15, order: 3 },
       { id: 'slot_evt',   type: 'event',       name: 'Events & Celebrations',enabled: true,  duration: 12, order: 4 },
       { id: 'slot_ach',   type: 'achievement', name: 'Achievements & Milestones', enabled: true, duration: 12, order: 5 },
-      { id: 'slot_idle',  type: 'idle',        name: 'AskEVA Standby Card',  enabled: false, duration: 8,  order: 6 }
+      { id: 'slot_kpi',   type: 'kpi',         name: 'Sales KPI Metrics',    enabled: true,  duration: 14, order: 6 },
+      { id: 'slot_idle',  type: 'idle',        name: 'AskEVA Standby Card',  enabled: false, duration: 8,  order: 7 }
     ];
   }
 
@@ -228,6 +229,29 @@
       logo: '',
       tagline: 'Office TV',
       defaultBirthdayMessage: 'Wishing you an amazing year ahead — from all of us at AskEVA!',
+      birthdayTemplate: {
+        brandSuffix: ' SIGNAGE',
+        brandSubtitle: 'CELEBRATION REEL',
+        feedText: 'FEED: CHANNEL 01',
+        feedMeta: '1080p60 · HDR10',
+        photoBadge: 'SPOTLIGHT HONOREE',
+        kicker: 'SPECIAL MILESTONE BROADCAST',
+        titleMain: 'HAPPY',
+        titleAccent: 'BIRTHDAY!',
+        footerLeft: 'CINEMATRIX ENGINE',
+        footerRight: 'EDID: 3840x2160@60HZ · UHD CANVAS',
+        backgroundTheme: 'midnight',
+        backgroundColor: 'rgb(8, 21, 14)',
+        backgroundAccent: 'rgb(22, 53, 36)',
+        accentColor: 'rgb(199, 245, 63)',
+        textColor: 'rgb(255, 255, 255)',
+        mutedColor: 'rgb(169, 178, 171)',
+        panelColor: 'rgb(16, 40, 27)',
+        particleCount: 14,
+        particleColor: 'rgb(199, 245, 63)',
+        particleOpacity: 0.5,
+        particleSpeed: 18
+      },
       defaultDuration: 12,
       refreshInterval: 15,
       theme: 'askeva-dark',
@@ -247,6 +271,464 @@
       { id: 'act_04', type: 'announcement', text: 'Announcement <strong>All-Hands: Q4 Kickoff</strong> published', actor: 'Admin', at: hoursAgo(5) },
       { id: 'act_05', type: 'employee',  text: 'Employee <strong>Tanvi Rao</strong> added to the directory', actor: 'Admin', at: hoursAgo(27) },
       { id: 'act_06', type: 'performer', text: 'Top Performer of the Month set to <strong>Sana Khan</strong>', actor: 'Admin', at: hoursAgo(50) }
+    ];
+  }
+
+  function buildKpiRecords() {
+    var now = new Date().toISOString();
+    return [
+      // --- 2025 Historical baseline ---
+      {
+        id: 'kpi_2025_w51',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 51, December 2025',
+        periodKey: '2025-W51',
+        periodStart: '2025-12-15',
+        periodEnd: '2025-12-21',
+        scope: 'team',
+        metrics: { leads: 70, meetings: 22, dealsWon: 7, newClients: 3 },
+        leads: 70, meetings: 22, dealsWon: 7, newClients: 3,
+        customContent: {
+          heading: '2025 Year-End Push',
+          message: 'Solid momentum into annual closing.',
+          subMessage: 'Enterprise pipeline building.',
+          footer: 'AskEVA Revenue Intelligence'
+        },
+        chartType: 'line',
+        status: 'approved',
+        createdAt: '2025-12-22T10:00:00.000Z',
+        updatedAt: '2025-12-22T10:00:00.000Z'
+      },
+
+      // --- June 2026 (Enterprise Sales) ---
+      {
+        id: 'kpi_w23',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 23, June 2026',
+        periodKey: '2026-W23',
+        periodStart: '2026-06-01',
+        periodEnd: '2026-06-07',
+        scope: 'team',
+        metrics: { leads: 95, meetings: 28, dealsWon: 9, newClients: 4 },
+        leads: 95, meetings: 28, dealsWon: 9, newClients: 4,
+        customContent: { heading: 'June Kickoff', message: 'Steady outbound discovery calls.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_w24',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 24, June 2026',
+        periodKey: '2026-W24',
+        periodStart: '2026-06-08',
+        periodEnd: '2026-06-14',
+        scope: 'team',
+        metrics: { leads: 105, meetings: 30, dealsWon: 11, newClients: 4 },
+        leads: 105, meetings: 30, dealsWon: 11, newClients: 4,
+        customContent: { heading: 'Mid June Acceleration', message: '11 enterprise deals progressed.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_w25',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 25, June 2026',
+        periodKey: '2026-W25',
+        periodStart: '2026-06-15',
+        periodEnd: '2026-06-21',
+        scope: 'team',
+        metrics: { leads: 108, meetings: 31, dealsWon: 10, newClients: 5 },
+        leads: 108, meetings: 31, dealsWon: 10, newClients: 5,
+        customContent: { heading: 'Late June Progress', message: 'High meeting volume.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_w26',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 26, June 2026',
+        periodKey: '2026-W26',
+        periodStart: '2026-06-22',
+        periodEnd: '2026-06-28',
+        scope: 'team',
+        metrics: { leads: 112, meetings: 31, dealsWon: 12, newClients: 5 },
+        leads: 112, meetings: 31, dealsWon: 12, newClients: 5,
+        customContent: { heading: 'Q2 Closing', message: 'Quarter end targets met.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+
+      // --- July 2026 (Enterprise Sales) ---
+      {
+        id: 'kpi_w27',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 27, July 2026',
+        periodKey: '2026-W27',
+        periodStart: '2026-06-29',
+        periodEnd: '2026-07-05',
+        scope: 'team',
+        metrics: { leads: 115, meetings: 33, dealsWon: 12, newClients: 5 },
+        leads: 115, meetings: 33, dealsWon: 12, newClients: 5,
+        customContent: { heading: 'July Launch', message: 'Q3 pipeline expansion.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_w28',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 28, July 2026',
+        periodKey: '2026-W28',
+        periodStart: '2026-07-06',
+        periodEnd: '2026-07-12',
+        scope: 'team',
+        metrics: { leads: 118, meetings: 35, dealsWon: 12, newClients: 6 },
+        leads: 118, meetings: 35, dealsWon: 12, newClients: 6,
+        customContent: { heading: 'Tier 1 Outbound', message: 'High response rate on campaigns.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_w29',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 29, July 2026',
+        periodKey: '2026-W29',
+        periodStart: '2026-07-13',
+        periodEnd: '2026-07-19',
+        scope: 'team',
+        metrics: { leads: 122, meetings: 36, dealsWon: 13, newClients: 6 },
+        leads: 122, meetings: 36, dealsWon: 13, newClients: 6,
+        customContent: { heading: 'Mid-July Surge', message: 'Strong inbound lead volume.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_w30',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 30, July 2026',
+        periodKey: '2026-W30',
+        periodStart: '2026-07-20',
+        periodEnd: '2026-07-26',
+        scope: 'team',
+        metrics: { leads: 125, meetings: 36, dealsWon: 13, newClients: 6 },
+        leads: 125, meetings: 36, dealsWon: 13, newClients: 6,
+        customContent: { heading: 'Late July Momentum', message: 'Closing deals ahead of August.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+
+      // --- August 2026 (Enterprise Sales) ---
+      {
+        id: 'kpi_w31',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 31, July 2026',
+        periodKey: '2026-W31',
+        periodStart: '2026-07-27',
+        periodEnd: '2026-08-02',
+        scope: 'team',
+        metrics: { leads: 122, meetings: 32, dealsWon: 11, newClients: 5 },
+        leads: 122, meetings: 32, dealsWon: 11, newClients: 5,
+        customContent: { heading: 'Late July Push', message: 'Strong July month-end pipeline.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_w32',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 32, August 2026',
+        periodKey: '2026-W32',
+        periodStart: '2026-08-03',
+        periodEnd: '2026-08-09',
+        scope: 'team',
+        metrics: { leads: 133, meetings: 33, dealsWon: 12, newClients: 6 },
+        leads: 133, meetings: 33, dealsWon: 12, newClients: 6,
+        customContent: { heading: 'Summer Campaign', message: 'Consistent meetings booked.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_w33',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 33, August 2026',
+        periodKey: '2026-W33',
+        periodStart: '2026-08-10',
+        periodEnd: '2026-08-16',
+        scope: 'team',
+        metrics: { leads: 80, meetings: 25, dealsWon: 8, newClients: 4 },
+        leads: 80, meetings: 25, dealsWon: 8, newClients: 4,
+        customContent: {
+          heading: 'Q3 Enterprise Momentum',
+          message: 'Solid opening week for Enterprise campaigns.',
+          subMessage: 'Focusing on mid-market outbound pipeline.',
+          footer: 'AskEVA Revenue Intelligence'
+        },
+        chartType: 'line',
+        status: 'approved',
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'kpi_w34',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 34, August 2026',
+        periodKey: '2026-W34',
+        periodStart: '2026-08-17',
+        periodEnd: '2026-08-23',
+        scope: 'team',
+        metrics: { leads: 95, meetings: 30, dealsWon: 11, newClients: 5 },
+        leads: 95, meetings: 30, dealsWon: 11, newClients: 5,
+        customContent: {
+          heading: 'Accelerating Outbound',
+          message: 'Key meetings scheduled with Tier-1 accounts.',
+          subMessage: 'BDA outbound conversion rate up 12%.',
+          footer: 'AskEVA Revenue Intelligence'
+        },
+        chartType: 'line',
+        status: 'approved',
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'kpi_w35',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 35, August 2026',
+        periodKey: '2026-W35',
+        periodStart: '2026-08-24',
+        periodEnd: '2026-08-30',
+        scope: 'team',
+        metrics: { leads: 100, meetings: 35, dealsWon: 15, newClients: 7 },
+        leads: 100, meetings: 35, dealsWon: 15, newClients: 7,
+        customContent: {
+          heading: 'Triple-Digit Lead Milestone',
+          message: 'Reached 100 leads milestone before September kickoff.',
+          subMessage: '7 enterprise deals signed.',
+          footer: 'AskEVA Revenue Intelligence'
+        },
+        chartType: 'line',
+        status: 'approved',
+        createdAt: now,
+        updatedAt: now
+      },
+
+      // --- September 2026 (Enterprise Sales) - Exact user specified numbers ---
+      {
+        id: 'kpi_w36',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 36, September 2026',
+        periodKey: '2026-W36',
+        periodStart: '2026-08-31',
+        periodEnd: '2026-09-06',
+        scope: 'team',
+        metrics: { leads: 128, meetings: 42, dealsWon: 18, newClients: 9 },
+        leads: 128, meetings: 42, dealsWon: 18, newClients: 9,
+        customContent: {
+          heading: 'Record-Breaking Week 36!',
+          message: 'Exceptional performance across all four metrics.',
+          subMessage: 'Highest single-week closed deals in Q3.',
+          footer: 'AskEVA Revenue Intelligence'
+        },
+        chartType: 'line',
+        status: 'published',
+        publishedAt: now,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'kpi_w37',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 37, September 2026',
+        periodKey: '2026-W37',
+        periodStart: '2026-09-07',
+        periodEnd: '2026-09-13',
+        scope: 'team',
+        metrics: { leads: 140, meetings: 45, dealsWon: 20, newClients: 11 },
+        leads: 140, meetings: 45, dealsWon: 20, newClients: 11,
+        customContent: {
+          heading: 'Mid-September Outbound Surge',
+          message: 'Outbound campaigns delivering 140 leads.',
+          subMessage: '20 closed deals this week.',
+          footer: 'AskEVA Revenue Intelligence'
+        },
+        chartType: 'line',
+        status: 'approved',
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'kpi_w38',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 38, September 2026',
+        periodKey: '2026-W38',
+        periodStart: '2026-09-14',
+        periodEnd: '2026-09-20',
+        scope: 'team',
+        metrics: { leads: 155, meetings: 50, dealsWon: 22, newClients: 13 },
+        leads: 155, meetings: 50, dealsWon: 22, newClients: 13,
+        customContent: {
+          heading: '50 Meetings Milestone',
+          message: 'Record 50 qualified prospect meetings booked.',
+          subMessage: 'Enterprise SDRs leading across all quotas.',
+          footer: 'AskEVA Revenue Intelligence'
+        },
+        chartType: 'line',
+        status: 'approved',
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: 'kpi_w39',
+        department: 'BDA',
+        teamName: 'Enterprise Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 39, September 2026',
+        periodKey: '2026-W39',
+        periodStart: '2026-09-21',
+        periodEnd: '2026-09-27',
+        scope: 'team',
+        metrics: { leads: 170, meetings: 55, dealsWon: 25, newClients: 15 },
+        leads: 170, meetings: 55, dealsWon: 25, newClients: 15,
+        customContent: {
+          heading: 'September All-Time Peak',
+          message: 'Historic record: 170 leads and 25 closed enterprise deals.',
+          subMessage: 'September sums to 593 leads, 192 meetings, 85 deals, 48 clients.',
+          footer: 'AskEVA Revenue Intelligence'
+        },
+        chartType: 'line',
+        status: 'published',
+        publishedAt: now,
+        createdAt: now,
+        updatedAt: now
+      },
+
+      // --- SMB Sales weekly records for team comparison ---
+      {
+        id: 'kpi_smb_w33',
+        department: 'BDA',
+        teamName: 'SMB Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 33, August 2026',
+        periodKey: '2026-W33',
+        periodStart: '2026-08-10',
+        periodEnd: '2026-08-16',
+        scope: 'team',
+        metrics: { leads: 60, meetings: 20, dealsWon: 6, newClients: 2 },
+        leads: 60, meetings: 20, dealsWon: 6, newClients: 2,
+        customContent: { heading: 'SMB Outbound', message: 'SMB inbound pacing well.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_smb_w34',
+        department: 'BDA',
+        teamName: 'SMB Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 34, August 2026',
+        periodKey: '2026-W34',
+        periodStart: '2026-08-17',
+        periodEnd: '2026-08-23',
+        scope: 'team',
+        metrics: { leads: 72, meetings: 24, dealsWon: 7, newClients: 3 },
+        leads: 72, meetings: 24, dealsWon: 7, newClients: 3,
+        customContent: { heading: 'SMB Growth', message: 'Steady increase in deals.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_smb_w35',
+        department: 'BDA',
+        teamName: 'SMB Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 35, August 2026',
+        periodKey: '2026-W35',
+        periodStart: '2026-08-24',
+        periodEnd: '2026-08-30',
+        scope: 'team',
+        metrics: { leads: 75, meetings: 26, dealsWon: 9, newClients: 4 },
+        leads: 75, meetings: 26, dealsWon: 9, newClients: 4,
+        customContent: { heading: 'SMB Momentum', message: 'Approaching monthly quota.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_smb_w36',
+        department: 'BDA',
+        teamName: 'SMB Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 36, September 2026',
+        periodKey: '2026-W36',
+        periodStart: '2026-08-31',
+        periodEnd: '2026-09-06',
+        scope: 'team',
+        metrics: { leads: 90, meetings: 30, dealsWon: 11, newClients: 6 },
+        leads: 90, meetings: 30, dealsWon: 11, newClients: 6,
+        customContent: { heading: 'SMB Strong September', message: 'Crossed 90 leads in Week 36.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_smb_w37',
+        department: 'BDA',
+        teamName: 'SMB Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 37, September 2026',
+        periodKey: '2026-W37',
+        periodStart: '2026-09-07',
+        periodEnd: '2026-09-13',
+        scope: 'team',
+        metrics: { leads: 98, meetings: 33, dealsWon: 13, newClients: 7 },
+        leads: 98, meetings: 33, dealsWon: 13, newClients: 7,
+        customContent: { heading: 'SMB Expansion', message: 'Higher conversion on trials.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_smb_w38',
+        department: 'BDA',
+        teamName: 'SMB Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 38, September 2026',
+        periodKey: '2026-W38',
+        periodStart: '2026-09-14',
+        periodEnd: '2026-09-20',
+        scope: 'team',
+        metrics: { leads: 110, meetings: 37, dealsWon: 15, newClients: 8 },
+        leads: 110, meetings: 37, dealsWon: 15, newClients: 8,
+        customContent: { heading: 'SMB Triple Digits', message: '110 leads recorded this week.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      },
+      {
+        id: 'kpi_smb_w39',
+        department: 'BDA',
+        teamName: 'SMB Sales',
+        periodType: 'weekly',
+        periodLabel: 'Week 39, September 2026',
+        periodKey: '2026-W39',
+        periodStart: '2026-09-21',
+        periodEnd: '2026-09-27',
+        scope: 'team',
+        metrics: { leads: 122, meetings: 40, dealsWon: 17, newClients: 10 },
+        leads: 122, meetings: 40, dealsWon: 17, newClients: 10,
+        customContent: { heading: 'SMB September Finale', message: 'Record closing for SMB accounts.', subMessage: '', footer: 'AskEVA Revenue Intelligence' },
+        chartType: 'line', status: 'approved', createdAt: now, updatedAt: now
+      }
     ];
   }
 
@@ -275,6 +757,8 @@
     playlist: buildPlaylist,
     settings: buildSettings,
     activity: buildActivity,
-    broadcast: buildBroadcast
+    broadcast: buildBroadcast,
+    kpiRecords: buildKpiRecords,
+    salesKpis: buildKpiRecords
   };
 })(window.EVA = window.EVA || {});
