@@ -13,6 +13,7 @@
     { id: "dashboard", label: "Dashboard", icon: "dashboard" },
     { id: "content", label: "Content Media", icon: "layers" },
     { id: "tv", label: "TV Display", icon: "tv" },
+    { id: "engagement", label: "Engagement Hub", icon: "sparkles" },
     { id: "settings", label: "Settings", icon: "settings" },
   ];
 
@@ -23,6 +24,8 @@
     "announcements",
     "events",
     "achievements",
+    "sales-kpis",
+    "salesKpis",
   ];
 
   var app = {
@@ -505,6 +508,13 @@
   }
 
   app.boot = function () {
+    // Public phone route: hosts with SPA fallback serve index.html for /engage/:id.
+    // It deliberately bypasses the admin shell and renders a touch-friendly response page.
+    var publicMatch = window.location.pathname.match(/^\/engage\/([^/]+)\/?$/);
+    if (publicMatch && EVA.pages.engageEmployee) {
+      EVA.pages.engageEmployee.boot(decodeURIComponent(publicMatch[1]));
+      return;
+    }
     app.route = parseHash();
     renderShell();
     renderPage(false);

@@ -15,6 +15,7 @@
   };
 
   var STATUSES = ["active", "on-leave", "inactive"];
+  var POSITIONS = ["Intern", "Full-time Employee"];
 
   function normalize(data) {
     return {
@@ -23,9 +24,9 @@
         .trim()
         .toUpperCase(),
       role: String(data.role || "").trim(),
-      category:
-        String(data.category || data.employeeType || "Employee").trim() ||
-        "Employee",
+      category: POSITIONS.indexOf(String(data.category || data.employeeType || "Intern").trim()) > -1
+        ? String(data.category || data.employeeType || "Intern").trim()
+        : "Intern",
       department: String(data.department || "").trim(),
       branchLocation: String(data.branchLocation || "").trim(),
       email: String(data.email || "").trim(),
@@ -38,6 +39,7 @@
 
   var service = {
     STATUSES: STATUSES,
+    POSITIONS: POSITIONS,
 
     all: function () {
       return store.list(COLL);
@@ -227,6 +229,27 @@
         );
       }
       return rec;
+    },
+
+    convertToFullTime: function (id) {
+      var emp = service.get(id);
+      if (!emp || emp.category !== "Intern") return null;
+      var updated = store.update(COLL, id, { category: "Full-time Employee" });
+      var existingDraft = EVA.services.performers.all().filter(function (rec) {
+        return rec.employeeId === id && rec.status === "draft" && rec.title === "Promoted to Full-time Employee";
+      })[0];
+      if (!existingDraft) {
+        EVA.services.performers.create({
+          employeeId: id,
+          period: "day",
+          rank: EVA.services.performers.nextRank("day"),
+          title: "Promoted to Full-time Employee",
+          description: emp.name + " has been promoted from intern to full-time employee.",
+          status: "draft"
+        });
+      }
+      EVA.services.activity.log("employee", "<strong>" + U.esc(emp.name) + "</strong> converted to full-time employee");
+      return updated;
     },
 
     remove: function (id) {

@@ -76,6 +76,19 @@
         .sort(function (a, b) { return a.daysSince - b.daysSince; });
     },
 
+    /** Birthday wishes saved as drafts and waiting for review. */
+    drafts: function () {
+      return store.list(COLL)
+        .filter(function (w) { return w.status === 'draft'; })
+        .map(function (w) {
+          var emp = EVA.services.employees.get(w.employeeId);
+          if (!emp || emp.status === 'inactive') return null;
+          return entry(emp);
+        })
+        .filter(Boolean)
+        .sort(function (a, b) { return a.employee.name.localeCompare(b.employee.name); });
+    },
+
     /** Get the existing wish or build (and store) a draft from the template. */
     ensure: function (employeeId) {
       var existing = wishFor(employeeId);
@@ -105,9 +118,13 @@
       };
     },
 
-    saveMessage: function (id, message, photo) {
+    saveMessage: function (id, message, photo, status) {
       var updateData = { message: String(message || '').trim() };
       if (photo !== undefined) updateData.photo = photo;
+      if (status === 'draft') {
+        updateData.status = 'draft';
+        updateData.publishedAt = null;
+      }
       return store.update(COLL, id, updateData);
     },
 
@@ -176,6 +193,7 @@
         readyToPublish: store.list(COLL).filter(function (w) {
           return w.status === 'draft';
         }).length,
+        drafts: service.drafts().length,
         live: service.forTV().length
       };
     }

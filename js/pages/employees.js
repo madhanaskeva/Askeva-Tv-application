@@ -70,15 +70,13 @@
       }) +
       ui.field({
         type: "select",
-        label: "Category",
+        label: "Position",
         name: "category",
-        value: e.category || "Employee",
+        value: e.category || (emp ? "Full-time Employee" : "Intern"),
         required: true,
-        placeholder: "Employee type",
-        options: [
-          { value: "Employee", label: "Employee" },
-          { value: "Intern", label: "Intern" },
-        ],
+        options: S.employees.POSITIONS.map(function (position) {
+          return { value: position, label: position };
+        }),
         error: errors.category,
       }) +
       "</div>" +
@@ -154,6 +152,9 @@
       body: formHtml(emp),
       foot:
         '<button class="btn btn--soft" type="button" data-close>Cancel</button>' +
+        (emp && emp.category === "Intern"
+          ? '<button class="btn btn--soft" type="button" data-convert-fte>' + icon("award", { size: 16 }) + "Convert to FTE" + "</button>"
+          : "") +
         '<button class="btn btn--soft" type="button" data-save>' +
         icon(emp ? "save" : "plus", { size: 16 }) +
         (emp ? "Save changes" : "Add employee") +
@@ -193,6 +194,24 @@
           .addEventListener("click", function () {
             save(true);
           });
+        var convertButton = c.el.querySelector("[data-convert-fte]");
+        if (convertButton) {
+          convertButton.addEventListener("click", function () {
+            ui.confirm({
+              title: "Convert this intern to a full-time employee?",
+              html: "<strong>" + U.esc(emp.name) + "</strong> will be updated and a draft recognition will be created.",
+              confirmLabel: "Convert to FTE",
+              icon: "award"
+            }).then(function (ok) {
+              if (!ok) return;
+              var result = S.employees.convertToFullTime(id);
+              if (!result) return;
+              c.close();
+              ui.toast.success("Employee converted", "A draft promotion recognition is ready.");
+              EVA.app.refresh();
+            });
+          });
+        }
 
         function save(andPush) {
           var data = ui.readForm(form);
