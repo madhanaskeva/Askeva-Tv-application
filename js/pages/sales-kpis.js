@@ -969,5 +969,5 @@
 
   // Support both hash aliases #/salesKpis and #/sales-kpis
   EVA.pages['sales-kpis'] = EVA.pages.salesKpis;
-})(window.EVA = window.EVA || {});
+})(window.EVA = window.EVA || {});    
 
