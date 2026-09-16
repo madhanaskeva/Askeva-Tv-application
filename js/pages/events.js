@@ -194,9 +194,10 @@
 
     render: function (params) {
       var pastHighlights = params && params[0] === 'past';
-      var rows = pastHighlights
-        ? S.events.all().filter(function (event) { return event.endDate && event.endDate < U.today(); })
-        : S.events.query(state);
+      var rows = S.events.query(state);
+      if (pastHighlights) {
+        rows = rows.filter(function (event) { return event.endDate && event.endDate < U.today(); });
+      }
       var stats = S.events.stats();
       var filtering = state.search || state.status !== 'all' || state.priority !== 'all';
 
@@ -231,11 +232,14 @@
           sel('status', state.status, S.events.STATUSES, 'Any status') +
           sel('priority', state.priority, S.events.PRIORITIES, 'Any priority') +
           (filtering ? '<button class="btn btn--ghost btn--sm" type="button" data-act="clear">' + icon('x', { size: 14 }) + 'Clear</button>' : '') +
-          (pastHighlights ? '' : '<div class="toolbar__spacer"></div>') +
           '<div class="segment">' +
             '<button class="segment__btn' + (state.sort === 'startDate' ? ' is-active' : '') + '" type="button" data-sort="startDate">' + icon('calendar', { size: 14 }) + 'Date</button>' +
             '<button class="segment__btn' + (state.sort === 'priority' ? ' is-active' : '') + '" type="button" data-sort="priority">' + icon('flag', { size: 14 }) + 'Priority</button>' +
             '<button class="segment__btn' + (state.sort === 'title' ? ' is-active' : '') + '" type="button" data-sort="title">' + icon('sort', { size: 14 }) + 'Title</button>' +
+            // View toggle, not a sort: lime when on so it reads apart from the sort pill.
+            '<button class="segment__btn' + (pastHighlights ? ' is-active is-lime' : '') + '" type="button" data-act="toggle-past"' +
+              ' aria-pressed="' + pastHighlights + '" title="' + (pastHighlights ? 'Show all events' : 'Show past event highlights') + '">' +
+              icon('clock', { size: 14 }) + 'Past</button>' +
           '</div>' +
         '</div>' +
 
@@ -249,7 +253,9 @@
                 : 'Create your first event to share news on the office TV.',
               actions: filtering
                 ? '<button class="btn btn--soft" type="button" data-act="clear">Clear filters</button>'
-                : '<button class="btn btn--primary" type="button" data-act="add">' + icon('plus', { size: 16 }) + 'Create event</button>'
+                : pastHighlights
+                  ? '<button class="btn btn--soft" type="button" data-act="toggle-past">' + icon('calendar', { size: 16 }) + 'Back to all events</button>'
+                  : '<button class="btn btn--primary" type="button" data-act="add">' + icon('plus', { size: 16 }) + 'Create event</button>'
             }) + '</div></div>');
     },
 
@@ -286,6 +292,10 @@
 
         if (act === 'add') { openForm(null); return; }
         if (act === 'preview-all') { EVA.publish.preview({}); return; }
+        if (act === 'toggle-past') {
+          EVA.app.go(EVA.app.route.params[0] === 'past' ? 'events' : 'events/past');
+          return;
+        }
         if (act === 'clear') {
           state.search = ''; state.status = 'all'; state.priority = 'all';
           EVA.app.refresh();

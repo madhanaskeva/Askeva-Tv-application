@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "branchName": "main",
+  "worktreePath": "E:\\Madhan\\AskEva T V application",
+  "upstream": "origin/main",
+  "mergeBase": "af7d679684b1160a2674295e56ea51e63adb35f2",
+  "firstSeenHead": "b39ad2880162699740d2b1684be9c52a8fafcd23",
+  "lastSeenHead": "b39ad2880162699740d2b1684be9c52a8fafcd23",
+  "lastAnalyzedHead": "b39ad2880162699740d2b1684be9c52a8fafcd23",
+  "stale": false,
+  "staleReason": null,
+  "staleSince": null,
+  "lifecycleEvent": null,
+  "createdAt": "2026-09-14T12:16:50.838Z",
+  "updatedAt": "2026-09-14T12:17:31.628Z"
+}

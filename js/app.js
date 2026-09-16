@@ -9,27 +9,68 @@
   var icon = EVA.icon;
   var ui = EVA.ui;
 
+  // Items with `children` render as a collapsible group. A child id may carry
+  // one route param ("events/past") so it can point at a sub-view of a page.
   var NAV = [
     { id: "dashboard", label: "Dashboard", icon: "dashboard" },
-    { id: "content", label: "Content Media", icon: "layers" },
+    {
+      id: "employee-details",
+      label: "Employee Details",
+      icon: "layers",
+      children: [
+        { id: "employees", label: "Employee", icon: "users" },
+        { id: "performers", label: "Employee Recognition", icon: "trophy" },
+        { id: "birthdays", label: "Birthday Wishes", icon: "cake" },
+        { id: "sales-kpis", label: "Sales KPI Metrics", icon: "activity" },
+      ],
+    },
     { id: "announcements", label: "Announcements", icon: "megaphone" },
     { id: "events", label: "Events", icon: "calendar" },
-    {id: "achievements", label: "Achievements", icon: "award"},
+    { id: "achievements", label: "Achievements", icon: "award" },
     { id: "tv", label: "TV Display", icon: "tv" },
     { id: "engagement", label: "Engagement Hub", icon: "sparkles" },
     { id: "settings", label: "Settings", icon: "settings" },
   ];
 
-  var CONTENT_ROUTES = [
-    "employees",
-    "performers",
-    "birthdays",
-    "announcements",
-    "events",
-    "achievements",
-    "sales-kpis",
-    "salesKpis",
-  ];
+  var NAV_GROUPS_KEY = "askeva.officetv.v1.ui.navGroups";
+  var navGroups = (function () {
+    try {
+      return JSON.parse(window.localStorage.getItem(NAV_GROUPS_KEY)) || {};
+    } catch (e) {
+      return {};
+    }
+  })();
+
+  function saveNavGroups() {
+    try {
+      window.localStorage.setItem(NAV_GROUPS_KEY, JSON.stringify(navGroups));
+    } catch (e) {
+      /* storage unavailable — state lasts for this session only */
+    }
+  }
+
+  // Every "route/param" path claimed by a nav entry, so "events" is not
+  // highlighted while "events/past" is.
+  var PARAM_PATHS = [];
+  NAV.forEach(function (n) {
+    (n.children || [n]).forEach(function (c) {
+      if (c.id.indexOf("/") !== -1) PARAM_PATHS.push(c.id);
+    });
+  });
+
+  function isNavActive(id) {
+    var parts = id.split("/");
+    if (app.route.name !== parts[0]) return false;
+    var param = app.route.params[0];
+    if (parts[1]) return param === parts[1];
+    return !param || PARAM_PATHS.indexOf(parts[0] + "/" + param) === -1;
+  }
+
+  function groupHasActive(group) {
+    return group.children.some(function (c) {
+      return isNavActive(c.id);
+    });
+  }
 
   var app = {
     route: { name: "dashboard", params: [] },
@@ -53,7 +94,7 @@
 
   app.back = function () {
     if (window.history.length > 1) window.history.back();
-    else app.go("content");
+    else app.go("dashboard");
   };
 
   app.refresh = function () {
@@ -80,41 +121,45 @@
     var settings = EVA.services.settings.get();
     var name = settings.companyName || "AskEVA";
 
-    var items = NAV.map(function (n) {
-      if (n.group)
-        return '<div class="nav__label">' + U.esc(n.group) + "</div>";
-      var active =
-        app.route.name === n.id ||
-        (n.id === "content" && CONTENT_ROUTES.indexOf(app.route.name) !== -1)
-          ? " is-active"
-          : "";
-      var badge = "";
-      if (n.id === "employees" && counts.employees)
-        badge = '<span class="nav__count">' + counts.employees + "</span>";
-      if (n.id === "birthdays" && counts.birthdays)
-        badge = '<span class="nav__count">' + counts.birthdays + "</span>";
-      if (n.id === "announcements" && counts.announcements)
-        badge = '<span class="nav__count">' + counts.announcements + "</span>";
-      if (n.id === "events" && counts.events)
-        badge = '<span class="nav__count">' + counts.events + "</span>";
-      if (n.id === "achievements" && counts.achievements)
-        badge = '<span class="nav__count">' + counts.achievements + "</span>";
-      if (n.id === "tv")
-        badge = tvStats.live
-          ? '<span class="nav__dot" title="Live"></span>'
-          : "";
+    function badgeFor(id) {
+      var n = counts[id];
+      if (id === "tv")
+        return tvStats.live ? '<span class="nav__dot" title="Live"></span>' : "";
+      if (id === "performers") return ""; // count is not meaningful at a glance
+      return n ? '<span class="nav__count">' + n + "</span>" : "";
+    }
+
+    function link(n, cls) {
+      var active = isNavActive(n.id) ? " is-active" : "";
       return (
-        '<a class="nav__item' +
-        active +
-        '" href="#/' +
-        n.id +
-        '">' +
+        '<a class="' + cls + active + '" href="#/' + n.id + '"' +
+        (active ? ' aria-current="page"' : "") + ">" +
         icon(n.icon) +
-        "<span>" +
-        U.esc(n.label) +
-        "</span>" +
-        badge +
+        "<span>" + U.esc(n.label) + "</span>" +
+        badgeFor(n.id) +
         "</a>"
+      );
+    }
+
+    var items = NAV.map(function (n) {
+      if (!n.children) return link(n, "nav__item");
+
+      var hasActive = groupHasActive(n);
+      var open = navGroups[n.id] !== undefined ? navGroups[n.id] : hasActive;
+      return (
+        '<div class="nav__group' + (open ? " is-open" : "") + '" data-group="' + n.id + '">' +
+          '<button class="nav__item nav__parent' + (hasActive ? " is-active" : "") + '" type="button"' +
+            ' data-nav-group="' + n.id + '" aria-expanded="' + open + '" aria-controls="nav-sub-' + n.id + '">' +
+            icon(n.icon) +
+            "<span>" + U.esc(n.label) + "</span>" +
+            '<span class="nav__chev">' + icon("chevron-down", { size: 15 }) + "</span>" +
+          "</button>" +
+          '<div class="nav__sub" id="nav-sub-' + n.id + '">' +
+            '<div class="nav__sub-inner">' +
+              n.children.map(function (c) { return link(c, "nav__subitem"); }).join("") +
+            "</div>" +
+          "</div>" +
+        "</div>"
       );
     }).join("");
 
@@ -188,11 +233,6 @@
       '<button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">' +
       icon("menu") +
       "</button>" +
-      (CONTENT_ROUTES.indexOf(app.route.name) !== -1
-        ? '<button class="btn btn--soft btn--sm header__back" type="button" data-app-action="back" aria-label="Go back">' +
-          icon("arrow-left", { size: 15 }) +
-          "Back</button>"
-        : "") +
       '<div class="header__titles">' +
       '<div class="header__title">' +
       U.esc(pageTitle) +
@@ -395,6 +435,21 @@
       };
     }
 
+    // Collapsible nav groups toggle in place (no re-render) and remember state.
+    Array.prototype.forEach.call(
+      document.querySelectorAll("[data-nav-group]"),
+      function (btn) {
+        btn.onclick = function () {
+          var group = btn.closest(".nav__group");
+          var open = !group.classList.contains("is-open");
+          group.classList.toggle("is-open", open);
+          btn.setAttribute("aria-expanded", String(open));
+          navGroups[btn.dataset.navGroup] = open;
+          saveNavGroups();
+        };
+      },
+    );
+
     Array.prototype.forEach.call(
       document.querySelectorAll("[data-app-action]"),
       function (el) {
@@ -498,6 +553,13 @@
 
   function onHashChange() {
     app.route = parseHash();
+    // Navigating into a submodule always reveals its group.
+    NAV.forEach(function (n) {
+      if (n.children && groupHasActive(n) && navGroups[n.id] === false) {
+        navGroups[n.id] = true;
+        saveNavGroups();
+      }
+    });
     renderPage(false);
     var sb = document.getElementById("sidebar");
     var sc = document.getElementById("sidebarScrim");
