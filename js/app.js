@@ -12,6 +12,9 @@
   var NAV = [
     { id: "dashboard", label: "Dashboard", icon: "dashboard" },
     { id: "content", label: "Content Media", icon: "layers" },
+    { id: "announcements", label: "Announcements", icon: "megaphone" },
+    { id: "events", label: "Events", icon: "calendar" },
+    {id: "achievements", label: "Achievements", icon: "award"},
     { id: "tv", label: "TV Display", icon: "tv" },
     { id: "engagement", label: "Engagement Hub", icon: "sparkles" },
     { id: "settings", label: "Settings", icon: "settings" },
@@ -197,11 +200,6 @@
       '<div class="header__sub">' +
       U.esc(U.longDate()) +
       "</div>" +
-      "</div>" +
-      '<div class="search">' +
-      icon("search") +
-      '<input type="search" id="globalSearch" placeholder="Search employees, announcements…" aria-label="Search">' +
-      "<kbd>/</kbd>" +
       "</div>" +
       '<div class="header__actions">' +
       '<a class="btn btn--soft btn--sm" href="' +
