@@ -132,6 +132,10 @@
     '</div>';
   }
 
+
+
+
+
   /* ============================ NOW PLAYING ============================ */
 
   function nowPlaying() {
@@ -208,7 +212,6 @@
       '</div>' +
     '</div>';
   }
-
   /* ============================ READY TO PUBLISH ============================ */
 
   function readyItems() {
@@ -281,14 +284,12 @@
     if (!bdays.length) {
       body = ui.empty({
         icon: 'cake',
-        title: 'No birthdays today',
+        title: 'No birthdays on TV today',
         text: next ? 'Next up: ' + next.employee.name + ' in ' + next.daysUntil + ' ' + U.pluralize(next.daysUntil, 'day') + '.' : 'None scheduled.'
       });
     } else {
       body = '<ul class="dash-list">' + bdays.map(function (b) {
-        var status = b.wish
-          ? (b.wish.status === 'published' ? ui.badge('live', { label: 'On TV' }) : ui.badge('draft'))
-          : ui.badge('inactive', { label: 'No message' });
+        var status = ui.badge('live', { label: 'ON TV' });
         return '<li><a class="dash-row dash-row--bday" href="#/birthdays">' +
           ui.avatar(b.employee, { size: 'sm' }) +
           '<span class="dash-row__main">' +
@@ -419,7 +420,32 @@
     });
   }
 
-  /* ============================ PAGE ============================ */
+  function announcementsPanel() {
+    var all = S.announcements.all().filter(function(a) { return a.status === 'published' && S.announcements.inWindow(a); });
+    var rows = all.slice(0, 3).map(function (a) {
+      return '<div class="lb-row">' +
+        '<span class="lb-row__rank" style="color: var(--ink);">' + icon('megaphone', { size: 16 }) + '</span>' +
+        '<div class="person__meta" style="flex:1;min-width:0">' +
+          '<div class="person__name">' + U.esc(U.truncate(a.title, 35)) + '</div>' +
+          '<div class="person__sub">' + U.esc(a.category) + (a.startDate ? ' · ' + a.startDate : '') + '</div>' +
+        '</div>' +
+        ui.badge('live', { label: 'ON TV' }) +
+      '</div>';
+    }).join('');
+
+    if (!rows) {
+       rows = '<div style="padding: 20px; text-align: center; color: #666; font-size: 13px;">No announcements</div>';
+    }
+
+    return '<section class="card card--soft">' +
+      '<div class="card__head card__head--soft">' +
+        '<div><h3 class="card__title">' + icon('megaphone') + 'Announcements</h3>' +
+        '<p class="card__sub">Latest company updates</p></div>' +
+        '<a class="btn btn--xs btn--soft" href="#/announcements">Manage</a>' +
+      '</div>' +
+      '<div class="card__body card__body--flush"><div class="leaderboard">' + rows + '</div></div>' +
+    '</section>';
+  }
 
   EVA.pages.dashboard = {
     title: 'Dashboard',
@@ -491,12 +517,19 @@
         var action = btn.dataset.action;
 
         if (action === 'push') {
-          EVA.publish.push({ reason: 'TV updated from the dashboard' })
-            .then(function (ok) { if (ok) EVA.app.refresh(); });
+          EVA.app.go('liveplaylist');
         } else if (action === 'preview') {
           EVA.publish.preview({});
         } else if (action === 'edit-current') {
-          openCurrentEditor();
+          EVA.app.go('liveplaylist');
+        } else if (action === 'add-employee') {
+          EVA.pages.employees.openForm(null, function () { EVA.app.go('employees'); });
+        } else if (action === 'add-wish') {
+          EVA.app.go('birthdays');
+        } else if (action === 'add-performer') {
+          EVA.pages.performers.openForm(null, 'day', function () { EVA.app.go('performers'); });
+        } else if (action === 'add-announcement') {
+          EVA.pages.announcements.openForm(null, function () { EVA.app.go('announcements'); });
         }
       });
     }

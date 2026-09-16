@@ -26,6 +26,7 @@
     },
     { id: "announcements", label: "Announcements", icon: "megaphone" },
     { id: "events", label: "Events", icon: "calendar" },
+    { id: "liveplaylist", label: "Live Playlist", icon: "list" },
     { id: "achievements", label: "Achievements", icon: "award" },
     { id: "tv", label: "TV Display", icon: "tv" },
     { id: "engagement", label: "Engagement Hub", icon: "sparkles" },
@@ -262,7 +263,6 @@
       '<span class="avatar avatar--dark">AD</span>' +
       '<span class="admin-btn__meta">' +
       '<span class="admin-btn__name">Admin</span>' +
-      '<span class="admin-btn__role">Office TV owner</span>' +
       "</span>" +
       icon("chevron-down") +
       "</button>" +
@@ -465,11 +465,7 @@
     if (menu) menu.hidden = true;
 
     if (action === "push") {
-      EVA.publish
-        .push({ reason: "TV updated from the header" })
-        .then(function (ok) {
-          if (ok) app.refresh();
-        });
+      app.go("liveplaylist");
     } else if (action === "back") {
       app.back();
     } else if (action === "preview") {
