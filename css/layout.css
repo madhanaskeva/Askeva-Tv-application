@@ -316,7 +316,7 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  padding: 14px var(--gutter) 0;
+  padding: 0;
 }
 
 .header__inner {
@@ -325,12 +325,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 0 8px 0 20px;
+  padding: 0 16px 0 20px;
   background: rgba(255, 255, 255, .88);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-lg);
+  border-bottom: 1px solid var(--line-2);
   box-shadow: var(--sh-sm);
 }
 

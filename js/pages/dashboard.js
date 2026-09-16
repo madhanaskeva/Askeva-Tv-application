@@ -51,6 +51,10 @@
     '</div>';
   }
 
+
+
+
+
   function nowPlaying() {
     var tv = S.tv.stats();
     var slides = S.tv.liveSlides();
@@ -82,29 +86,25 @@
           '<div class="np-stat"><div class="np-stat__k">Pending</div><div class="np-stat__v">' +
             (pending.changed ? '<em>' + pending.count + '</em>' : '0') + '</div></div>' +
         '</div>' +
-     
       '</div>' +
     '</div>';
   }
 
-
   function todayPanel() {
-    var bdays = S.birthdays.today();
+    var bdays = S.birthdays.today().filter(function (b) { return b.wish && b.wish.status === 'published'; });
     var body;
 
     if (!bdays.length) {
       body = ui.empty({
         icon: 'cake',
-        title: 'No birthdays today',
+        title: 'No birthdays on TV today',
         text: 'The next one is ' + (S.birthdays.upcoming(365)[0]
           ? U.esc(S.birthdays.upcoming(365)[0].employee.name) + ' in ' + S.birthdays.upcoming(365)[0].daysUntil + ' days.'
           : 'not scheduled.')
       });
     } else {
       body = '<div class="today-strip">' + bdays.map(function (b) {
-        var status = b.wish
-          ? (b.wish.status === 'published' ? ui.badge('live', { label: 'On TV' }) : ui.badge('draft'))
-          : ui.badge('inactive', { label: 'No message' });
+        var status = ui.badge('live', { label: 'ON TV' });
         return '<div class="today-item today-item--birthday">' +
           ui.avatar(b.employee, { size: 'sm' }) +
           '<div class="person__meta" style="flex:1;min-width:0">' +
@@ -129,13 +129,8 @@
   function performersPanel() {
     var rows = S.performers.PERIODS.map(function (p) {
       var lead = S.performers.lead(p.key);
-      if (!lead) {
-        return '<div class="lb-row">' +
-          '<span class="lb-row__rank">—</span>' +
-          '<div class="person__meta" style="flex:1"><div class="person__name muted">Not set</div>' +
-          '<div class="person__sub">' + U.esc(p.title) + '</div></div>' +
-          '<a class="btn btn--xs btn--soft" href="#/performers">Set</a>' +
-        '</div>';
+      if (!lead || lead.status !== 'published') {
+        return '';
       }
       var emp = S.employees.display(lead.employeeId);
       return '<div class="lb-row">' +
@@ -145,9 +140,13 @@
           '<div class="person__name">' + U.esc(emp.name) + '</div>' +
           '<div class="person__sub">' + U.esc(p.label) + ' · ' + U.esc(U.truncate(lead.title, 28)) + '</div>' +
         '</div>' +
-        ui.badge(lead.status === 'published' ? 'live' : 'draft', lead.status === 'published' ? { label: 'On TV' } : {}) +
+        ui.badge('live', { label: 'ON TV' }) +
       '</div>';
-    }).join('');
+    }).filter(Boolean).join('');
+
+    if (!rows) {
+      rows = '<div style="padding: 20px; text-align: center; color: #666; font-size: 13px;">No performers on TV</div>';
+    }
 
     return '<section class="card card--soft">' +
       '<div class="card__head card__head--soft">' +
@@ -160,7 +159,7 @@
   }
 
   function activityPanel() {
-    var rows = S.activity.list(8);
+    var rows = S.activity.list(3);
     var body = rows.length
       ? '<div class="activity">' + rows.map(function (a) {
           var meta = ACT_ICON[a.type] || ACT_ICON.employee;
@@ -181,6 +180,33 @@
         '<p class="card__sub">Everything published from this panel</p></div>' +
       '</div>' +
       '<div class="card__body card__body--flush">' + body + '</div>' +
+    '</section>';
+  }
+
+  function announcementsPanel() {
+    var all = S.announcements.all().filter(function(a) { return a.status === 'published' && S.announcements.inWindow(a); });
+    var rows = all.slice(0, 3).map(function (a) {
+      return '<div class="lb-row">' +
+        '<span class="lb-row__rank" style="color: var(--ink);">' + icon('megaphone', { size: 16 }) + '</span>' +
+        '<div class="person__meta" style="flex:1;min-width:0">' +
+          '<div class="person__name">' + U.esc(U.truncate(a.title, 35)) + '</div>' +
+          '<div class="person__sub">' + U.esc(a.category) + (a.startDate ? ' · ' + a.startDate : '') + '</div>' +
+        '</div>' +
+        ui.badge('live', { label: 'ON TV' }) +
+      '</div>';
+    }).join('');
+
+    if (!rows) {
+       rows = '<div style="padding: 20px; text-align: center; color: #666; font-size: 13px;">No announcements</div>';
+    }
+
+    return '<section class="card card--soft">' +
+      '<div class="card__head card__head--soft">' +
+        '<div><h3 class="card__title">' + icon('megaphone') + 'Announcements</h3>' +
+        '<p class="card__sub">Latest company updates</p></div>' +
+        '<a class="btn btn--xs btn--soft" href="#/announcements">Manage</a>' +
+      '</div>' +
+      '<div class="card__body card__body--flush"><div class="leaderboard">' + rows + '</div></div>' +
     '</section>';
   }
 
@@ -206,11 +232,9 @@
           nowPlaying() +
         '</div>' +
 
-         
-
         '<div class="split">' +
           '<div class="stack">' + activityPanel() + '</div>' +
-          '<div class="stack">' + todayPanel() + performersPanel() + '</div>' +
+          '<div class="stack">' + todayPanel() + performersPanel() + announcementsPanel() + '</div>' +
         '</div>';
     },
 
@@ -234,12 +258,11 @@
         var action = btn.dataset.action;
 
         if (action === 'push') {
-          EVA.publish.push({ reason: 'TV updated from the dashboard' })
-            .then(function (ok) { if (ok) EVA.app.refresh(); });
+          EVA.app.go('liveplaylist');
         } else if (action === 'preview') {
           EVA.publish.preview({});
         } else if (action === 'edit-current') {
-          openCurrentEditor();
+          EVA.app.go('liveplaylist');
         } else if (action === 'add-employee') {
           EVA.pages.employees.openForm(null, function () { EVA.app.go('employees'); });
         } else if (action === 'add-wish') {
@@ -253,27 +276,7 @@
     }
   };
 
-  function openCurrentEditor() {
-    var player = EVA.pages.dashboard._player;
-    var slide = player && player.current;
-    if (!slide) {
-      ui.toast.info('Nothing to edit', 'Publish content to the TV first.');
-      return;
-    }
 
-    var match = String(slide.id || '').match(/^sl_(bday|perf|ann|ach)_(.+)$/);
-    if (slide.type === 'birthday' && match && EVA.pages.birthdays.openEditor) {
-      EVA.pages.birthdays.openEditor(match[2], { onSaved: function () { EVA.app.refresh(); } });
-    } else if (slide.type === 'performer' && match && EVA.pages.performers.openForm) {
-      EVA.pages.performers.openForm(match[2], null, function () { EVA.app.refresh(); });
-    } else if (slide.type === 'announcement' && match && EVA.pages.announcements.openForm) {
-      EVA.pages.announcements.openForm(match[2], function () { EVA.app.refresh(); });
-    } else if (slide.type === 'achievement' && match && EVA.pages.achievements.openForm) {
-      EVA.pages.achievements.openForm(match[2], function () { EVA.app.refresh(); });
-    } else {
-      ui.toast.info('This content is managed from its module', 'Open Content Media to edit this slide.');
-    }
-  }
 
   function greeting() {
     var h = new Date().getHours();
