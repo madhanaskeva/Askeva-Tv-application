@@ -36,8 +36,8 @@
   flex-direction: column;
   background: var(--ink);
   /* border-radius: var(--r-xl); */
-  border-top-right-radius: var(--r-xl);
-  border-bottom-right-radius: var(--r-xl);
+  /* border-top-right-radius: var(--r-xl);
+  border-bottom-right-radius: var(--r-xl); */
   box-shadow: var(--sh-lg);
   overflow: hidden;
   position: relative;
@@ -221,6 +221,108 @@
   animation: none;
 }
 
+/* ---------- Collapsible group (e.g. Employee Details) ---------- */
+.nav__group {
+  margin-bottom: 2px;
+}
+
+.nav__parent {
+  margin-bottom: 0;
+}
+
+.nav__chev {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  transition: transform var(--t);
+}
+
+.nav__chev svg {
+  width: 15px;
+  height: 15px;
+}
+
+.nav__group.is-open .nav__chev {
+  transform: rotate(180deg);
+}
+
+.nav__sub {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--t-slow);
+}
+
+.nav__group.is-open .nav__sub {
+  grid-template-rows: 1fr;
+}
+
+.nav__sub-inner {
+  overflow: hidden;
+  min-height: 0;
+  margin-left: 21px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line-light-2);
+}
+
+.nav__group.is-open .nav__sub-inner {
+  padding-top: 6px;
+  padding-bottom: 4px;
+}
+
+.nav__subitem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin-bottom: 2px;
+  border-radius: var(--r-sm);
+  color: rgba(255, 255, 255, .6);
+  font-size: 13px;
+  font-weight: 500;
+  position: relative;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.nav__subitem span:not(.nav__count) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav__subitem svg {
+  width: 16px;
+  height: 16px;
+  opacity: .75;
+}
+
+.nav__subitem:hover {
+  background: rgba(255, 255, 255, .06);
+  color: var(--white);
+}
+
+.nav__subitem.is-active {
+  background: rgba(199, 245, 63, .1);
+  color: var(--lime);
+  font-weight: 600;
+}
+
+.nav__subitem.is-active svg {
+  opacity: 1;
+}
+
+/* lime tick on the guide line marks the current submodule */
+.nav__subitem.is-active::before {
+  content: "";
+  position: absolute;
+  left: -11px;
+  top: 50%;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--lime);
+  transform: translateY(-50%);
+}
+
 /* Sidebar TV status footer */
 .sidebar__foot {
   padding: 12px;
@@ -338,10 +440,6 @@
   min-width: 0;
   flex: none;
   padding-right: 6px;
-}
-
-.header__back {
-  flex: none;
 }
 
 .header__title {
