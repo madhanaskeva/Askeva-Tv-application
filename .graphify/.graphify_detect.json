@@ -1,0 +1,74 @@
+{
+  "files": {
+    "code": [
+      "js/app.js",
+      "js/components/publish.js",
+      "js/components/slides.js",
+      "js/components/ui.js",
+      "js/core/store.js",
+      "js/core/utils.js",
+      "js/data/seed.js",
+      "js/icons.js",
+      "js/pages/achievements.js",
+      "js/pages/announcements.js",
+      "js/pages/birthdays.js",
+      "js/pages/dashboard.js",
+      "js/pages/employees.js",
+      "js/pages/engagement.js",
+      "js/pages/events.js",
+      "js/pages/performers.js",
+      "js/pages/sales-kpis.js",
+      "js/pages/settings.js",
+      "js/services/achievements.js",
+      "js/services/activity.js",
+      "js/services/announcements.js",
+      "js/services/birthdays.js",
+      "js/services/employees.js",
+      "js/services/engagements.js",
+      "js/services/events.js",
+      "js/services/performers.js",
+      "js/services/sales-kpis.js",
+      "js/services/settings.js",
+      "js/services/tv.js",
+      "js/vendor/qrcode.min.js"
+    ],
+    "document": [
+      "index.html",
+      "tv.html"
+    ],
+    "paper": [],
+    "image": [],
+    "video": []
+  },
+  "total_files": 32,
+  "total_words": 47615,
+  "needs_graph": false,
+  "warning": "Corpus is ~47,615 words - fits in a single context window. You may not need a graph.",
+  "skipped_sensitive": [],
+  "graphifyignore_patterns": 0,
+  "git": {
+    "source_owner": "git",
+    "source_hash": "b39ad2880162699740d2b1684be9c52a8fafcd23",
+    "branches": [
+      "main"
+    ],
+    "max_commits": 200,
+    "active_within_days": 30
+  },
+  "scope": {
+    "requested_mode": "auto",
+    "resolved_mode": "committed",
+    "source": "default-auto",
+    "root": ".",
+    "git_root": ".",
+    "head": "b39ad2880162699740d2b1684be9c52a8fafcd23",
+    "candidate_count": 41,
+    "included_count": 32,
+    "excluded_untracked_count": 47,
+    "excluded_ignored_count": 0,
+    "excluded_sensitive_count": 0,
+    "missing_committed_count": 1,
+    "warnings": [],
+    "recommendation": "Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder."
+  }
+}

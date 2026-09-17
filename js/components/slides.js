@@ -22,6 +22,61 @@
     return '<div class="slide__brand"><i></i><span>' + U.esc(name) + '</span></div>';
   }
 
+  function logoTile(company) {
+    return '<b class="slide-logo"><img src="assets/askeva%20logo.jfif" alt="' + U.attr(company) + ' logo" onerror="this.remove()">' +
+      U.esc(String(company).charAt(0).toUpperCase()) + '</b>';
+  }
+
+  /* Laurel wreath: leaves placed along the left arc, mirrored for the right. */
+  var PERF_LAUREL = (function () {
+    function branch() {
+      var R = 88, out = '';
+      out += '<path d="M' + pt(112, R).join(' ') + ' A' + R + ' ' + R + ' 0 0 1 ' + pt(242, R).join(' ') +
+        '" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".75"/>';
+      for (var i = 0; i < 9; i++) {
+        var a = 116 + i * 15;
+        var size = 1 - i * 0.045;
+        [[R + 8, -32], [R - 8, 32]].forEach(function (leaf, j) {
+          var p = pt(a + (j ? 7 : 0), leaf[0]);
+          out += '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="' + (11 * size).toFixed(1) + '" ry="' + (4.4 * size).toFixed(1) +
+            '" transform="rotate(' + (a + 90 + leaf[1]) + ' ' + p[0] + ' ' + p[1] + ')" fill="currentColor" opacity="' + (j ? .7 : .95) + '"/>';
+        });
+      }
+      return out;
+    }
+    function pt(deg, r) {
+      var rad = deg * Math.PI / 180;
+      return [(100 + r * Math.cos(rad)).toFixed(1), (100 + r * Math.sin(rad)).toFixed(1)];
+    }
+    var b = branch();
+    return '<svg class="perf-slide__laurel" viewBox="0 0 200 200" aria-hidden="true">' +
+      '<g>' + b + '</g><g transform="translate(200 0) scale(-1 1)">' + b + '</g></svg>';
+  })();
+
+  var PERF_STARS = [
+    [50, 1, 3.4], [37, 5, 2.1], [63, 5, 2.1], [26, 13, 1.4], [74, 13, 1.4]
+  ].map(function (s) {
+    return '<span class="perf-slide__star" style="left:' + s[0] + '%;top:' + s[1] + '%;width:' + s[2] + 'cqi;height:' + s[2] + 'cqi">' +
+      EVA.icon('star', { size: 24 }) + '</span>';
+  }).join('');
+
+  /* Two-layer city skyline along the bottom edge. */
+  var PERF_SKYLINE = (function () {
+    function layer(heights, width, cls) {
+      var x = 0, d = 'M0 120';
+      heights.forEach(function (h, i) {
+        var w = width[i % width.length];
+        d += ' L' + x + ' ' + (120 - h) + ' L' + (x + w) + ' ' + (120 - h);
+        x += w;
+      });
+      return '<path class="' + cls + '" d="' + d + ' L' + x + ' 120 Z"/>';
+    }
+    return '<svg class="perf-slide__skyline" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true">' +
+      layer([40, 72, 55, 96, 60, 110, 48, 80, 66, 102, 52, 88, 44, 76, 98, 58, 84, 50, 70, 92, 46, 64], [44, 36, 52, 30, 48, 40], 'is-back') +
+      layer([26, 44, 34, 58, 30, 50, 38, 62, 28, 46, 36, 54, 24, 42, 56, 32, 48, 30, 40, 52, 34, 44, 28, 38], [40, 46, 34, 52, 38], 'is-front') +
+    '</svg>';
+  })();
+
   function confetti(n, template) {
     var out = '';
     var color = U.attr(template.particleColor || template.accentColor || '#C7F53F');
@@ -55,7 +110,8 @@
       return '<div class="slide slide--birthday" data-theme="' + U.attr(t.backgroundTheme || 'midnight') + '" style="' + style + '">' +
         confetti(Math.max(0, Math.min(50, t.particleCount === undefined ? 14 : Number(t.particleCount))), t) +
         '<div class="birthday__topline">' +
-          '<span class="birthday__brand"><b>A</b><span>' + U.esc(company.toUpperCase()) + '<em>' + U.esc(t.brandSuffix || ' SIGNAGE') + '</em><small>' + U.esc(t.brandSubtitle || 'CELEBRATION REEL') + '</small></span></span>' +
+          '<span class="birthday__brand"><b class="birthday__logo">' +
+            '<img src="assets/askeva%20logo.jfif" alt="' + U.attr(company) + ' logo" onerror="this.remove()">A</b><span>' + U.esc(company.toUpperCase()) + '<em>' + U.esc(t.brandSuffix || ' SIGNAGE') + '</em><small>' + U.esc(t.brandSubtitle || 'CELEBRATION REEL') + '</small></span></span>' +
           '<span class="birthday__feed"><i></i> ' + U.esc(t.feedText || 'FEED: CHANNEL 01') + ' <em>· ' + U.esc(t.feedMeta || '1080p60 · HDR10') + '</em></span>' +
         '</div>' +
         '<div class="birthday__body">' +
@@ -80,16 +136,46 @@
       '</div>';
     },
 
+    /* Recognition poster: copy on the left, laurel-framed portrait on the right. */
     performer: function (d, settings) {
+      var company = (settings && settings.companyName) || 'AskEVA';
+      var rank = '#' + U.pad2(d.rank || 1);
+      var period = String(d.periodTitle || 'Top Performer').replace(/^Top Performer\s*/i, '') || 'Recognition';
+      var initials = U.esc(d.initials || U.initials(d.name || 'E'));
+
       return '<div class="slide slide--performer">' +
-        '<div class="slide__kicker">' + U.esc(d.periodTitle || 'Top Performer') + '</div>' +
-        '<div class="slide__rank"><sup>#</sup>' + U.pad2(d.rank || 1) + '</div>' +
-        '<div class="slide__name">' + U.esc(d.name) + '</div>' +
-        '<div class="slide__role">' + U.esc(d.role || '') +
-          (d.department ? ' · <em>' + U.esc(d.department) + '</em>' : '') + '</div>' +
-        (d.title ? '<div class="slide__achv">' + icon('trophy', { size: 26 }) + U.esc(d.title) + '</div>' : '') +
-        (d.description ? '<p class="slide__quote">' + U.esc(d.description) + '</p>' : '') +
-        brand(settings) +
+        PERF_SKYLINE +
+        '<div class="perf-slide__top">' +
+          '<span class="perf-slide__brand">' + logoTile(company) +
+            '<span><b>' + U.esc(company) + '</b><small>Office TV</small></span></span>' +
+          '<span class="perf-slide__motto">Our people<br><em>Our strength</em></span>' +
+        '</div>' +
+
+        '<div class="perf-slide__copy">' +
+          '<div class="perf-slide__eyebrow">' + rank + ' · ' + U.esc(period) + '</div>' +
+          '<h1 class="perf-slide__title">Top<br><em>Performer</em></h1>' +
+          '<i class="perf-slide__rule"></i>' +
+          (d.title ? '<div class="perf-slide__achv">' + icon('trophy', { size: 24 }) + '<span>' + U.esc(d.title) + '</span></div>' : '') +
+          (d.description ? '<p class="perf-slide__quote">' + U.esc(d.description) + '</p>' : '') +
+        '</div>' +
+
+        '<div class="perf-slide__portrait">' +
+          '<span class="perf-slide__glow"></span>' +
+          PERF_STARS +
+          PERF_LAUREL +
+          '<div class="perf-slide__photo">' +
+            (d.photo
+              ? '<img src="' + U.attr(d.photo) + '" alt="' + U.attr(d.name || '') + '" onerror="this.remove()">'
+              : '') +
+            '<span>' + initials + '</span>' +
+          '</div>' +
+          '<span class="perf-slide__rank">' + rank + '</span>' +
+          '<div class="perf-slide__ribbon"><span>' + U.esc(d.name) + '</span></div>' +
+          '<div class="perf-slide__role">' + U.esc(d.role || '') +
+            (d.department ? ' · <em>' + U.esc(d.department) + '</em>' : '') + '</div>' +
+        '</div>' +
+
+        '<div class="perf-slide__foot">People <i></i> Ideas <i></i> Impact</div>' +
       '</div>';
     },
 
