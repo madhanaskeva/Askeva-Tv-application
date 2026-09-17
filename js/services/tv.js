@@ -317,7 +317,10 @@
 
     liveSlides: function () {
       var b = service.broadcast();
-      return b.live ? (b.slides || []) : [];
+      if (!b.live) return [];
+      return (b.slides || []).filter(function(s) {
+        return s.status === 'approved';
+      });
     },
 
     isLive: function () {
@@ -334,19 +337,15 @@
 
     /** Slides that WOULD publish, but are not on air yet. */
     pending: function (opts) {
-      var next = service.buildSlides(opts);
-      var live = service.liveSlides();
-      var liveIds = live.map(function (s) { return s.id; });
-      var same = JSON.stringify(next) === JSON.stringify(live);
+      var b = service.broadcast();
+      var pendingSlides = (b.slides || []).filter(function(s) {
+        return s.status !== 'approved';
+      });
       return {
-        slides: next,
-        count: next.length,
-        added: next.filter(function (s) { return liveIds.indexOf(s.id) < 0; }).length,
-        removed: live.filter(function (s) {
-          return next.map(function (n) { return n.id; }).indexOf(s.id) < 0;
-        }).length,
-        changed: !same,
-        empty: next.length === 0
+        slides: pendingSlides,
+        count: pendingSlides.length,
+        changed: pendingSlides.length > 0,
+        empty: pendingSlides.length === 0
       };
     },
 

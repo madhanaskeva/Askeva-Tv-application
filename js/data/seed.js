@@ -258,6 +258,9 @@
       showClock: true,
       showBrand: true,
       showProgress: true,
+      activeWindowStart: '08:00',
+      activeWindowEnd: '19:00',
+      autoSleep: true,
       transition: 'fade',
       tvPath: 'tv.html'
     };

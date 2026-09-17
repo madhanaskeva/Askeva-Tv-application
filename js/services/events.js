@@ -10,7 +10,7 @@
 
   store.defaults[COLL] = EVA.seed.events || [];
 
-  var CATEGORIES = ['All-Hands', 'Celebration', 'Holiday', 'Team Lunch', 'Training'];
+  var CATEGORIES = [ 'Celebration',  'Training'];
   var PRIORITIES = ['low', 'normal', 'high', 'urgent'];
   var STATUSES = ['draft', 'scheduled', 'published', 'inactive'];
 

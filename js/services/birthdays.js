@@ -201,4 +201,27 @@
 
   EVA.services = EVA.services || {};
   EVA.services.birthdays = service;
+
+  // Auto-cleanup: if a birthday is published but the next birthday is far away (e.g., it already passed),
+  // automatically revert it to a draft so it doesn't linger on the TV forever.
+  setTimeout(function() {
+    var store = EVA.store;
+    var wishes = store.list(COLL);
+    var changed = false;
+    wishes.forEach(function(w) {
+      if (w.status === 'published') {
+        var emp = EVA.services.employees.get(w.employeeId);
+        if (emp && EVA.utils.daysUntilBirthday(emp.birthday) > 14) {
+          w.status = 'draft';
+          store.update(COLL, w.id, w);
+          changed = true;
+        }
+      }
+    });
+    if (changed) {
+      var b = EVA.services.tv.broadcast();
+      b.slides = EVA.services.tv.buildSlides();
+      store.writeDoc('broadcast', b);
+    }
+  }, 500);
 })(window.EVA = window.EVA || {});
